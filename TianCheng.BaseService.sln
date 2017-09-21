@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.16
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TianCheng.BaseService", "src\TianCheng.BaseService.csproj", "{4964350C-2401-406B-957E-3BD74B9898C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplesWebApi", "samples\SamplesWebApi\SamplesWebApi.csproj", "{4A99519C-A29B-4688-9507-5C4CEC9E2A5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4964350C-2401-406B-957E-3BD74B9898C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4964350C-2401-406B-957E-3BD74B9898C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4964350C-2401-406B-957E-3BD74B9898C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4964350C-2401-406B-957E-3BD74B9898C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A99519C-A29B-4688-9507-5C4CEC9E2A5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A99519C-A29B-4688-9507-5C4CEC9E2A5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A99519C-A29B-4688-9507-5C4CEC9E2A5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A99519C-A29B-4688-9507-5C4CEC9E2A5B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E4B3B9BF-7B60-4272-8831-E984B907C32D}
+	EndGlobalSection
+EndGlobal
