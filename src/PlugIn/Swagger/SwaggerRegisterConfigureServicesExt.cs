@@ -90,9 +90,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.DocumentFilter<AppendComment>();
                 //设置接口的排序
                 //options.OrderActionGroupsBy(new SwaggerOrderBy());
-                options.OrderActionsBy(SwaggerOrderBy.Order);                
+                options.OrderActionsBy(SwaggerOrderBy.Order);
             });
-            
+
             #endregion
         }
         /// <summary>
@@ -141,7 +141,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         {
                             //将xml文件拷贝到运行目录
                             string desc = $"{xmlPath}\\{System.IO.Path.GetFileName(file)}";
-                            System.IO.File.Copy(file, desc);
+                            System.IO.File.Copy(file, desc, true);
                         }
                     }
                 }
