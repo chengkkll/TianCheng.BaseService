@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.2.2</Version>
+    <Version>1.0.2.4</Version>
     <Authors>KKLL</Authors>
     <Company>TianCheng</Company>
-    <AssemblyVersion>1.0.2.2</AssemblyVersion>
-    <FileVersion>1.0.2.2</FileVersion>
+    <AssemblyVersion>1.0.2.4</AssemblyVersion>
+    <FileVersion>1.0.2.4</FileVersion>
     <Description>常用逻辑的业务处理，及实现通用业务的封装</Description>
     <PackageProjectUrl>https://github.com/chengkkll/TianCheng.BaseService</PackageProjectUrl>
   </PropertyGroup>

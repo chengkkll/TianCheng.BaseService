@@ -131,7 +131,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             foreach (CompilationLibrary library in DependencyContext.Default.CompileLibraries)
             {
-                if (library.Name.Contains("TianCheng"))
+                // 除了系统的库文件其它的程序集全部做查询处理
+                if(!library.Serviceable)
                 {
                     Assembly assembly = Assembly.Load(new AssemblyName(library.Name));
                     if (assembly != null && !String.IsNullOrWhiteSpace(assembly.Location))
@@ -139,7 +140,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         string path = System.IO.Path.GetDirectoryName(assembly.Location);
                         foreach (string file in System.IO.Directory.GetFiles(path, "*.xml"))
                         {
-                            //将xml文件拷贝到运行目录
+                            // 将xml文件拷贝到运行目录
                             string desc = $"{xmlPath}\\{System.IO.Path.GetFileName(file)}";
                             System.IO.File.Copy(file, desc, true);
                         }

@@ -37,7 +37,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 options.Filters.Add(typeof(TiangCheng.BaseService.PlugIn.ApiExcepiton.WebApiExceptionFilterAttribute));    //增加异常
             });
 
-
             //AuotMapper的对象注册
             TianCheng.BaseService.AutoMapperExtension.InitializeMappers();
 
@@ -58,7 +57,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddPolicy();            
             //auth 登录权限控制
             services.AuthConfigureServices(configuration);
-
 
             IsInit = true;
         }
