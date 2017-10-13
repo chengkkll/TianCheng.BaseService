@@ -34,5 +34,11 @@ namespace TianCheng.BaseService
         /// <param name="logonInfo"></param>
         /// <returns></returns>
         ResultView Update(T info, TokenLogonInfo logonInfo);
+
+        /// <summary>
+        /// 无条件查询所有
+        /// </summary>
+        /// <returns></returns>
+        IQueryable<T> SearchQueryable();
     }
 }

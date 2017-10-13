@@ -79,14 +79,21 @@ namespace Microsoft.AspNetCore.Builder
                         context.Response.Body.Write(byteArray, 0, byteArray.Length);
                     }
 
-                    if (context.Items.ContainsKey("Jwt-TokenFailed"))
+                    else if (context.Items.ContainsKey("Jwt-TokenFailed"))
                     {
                         context.Response.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
                         string result = Newtonsoft.Json.JsonConvert.SerializeObject(new { code = 401, message = "传递的Token值错误。" });
                         byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(result);
                         context.Response.Body.Write(byteArray, 0, byteArray.Length);
                     }
-
+                    else
+                    {
+                        //string msg = context.Response...Exception.Message;
+                        //context.Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+                        //string result = Newtonsoft.Json.JsonConvert.SerializeObject(new { code = 400, message = msg });
+                        //byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(result);
+                        //context.Response.Body.Write(byteArray, 0, byteArray.Length);
+                    }
 
 
                 }
@@ -143,6 +150,8 @@ namespace Microsoft.AspNetCore.Builder
                             {
                                 context.HttpContext.Items["Jwt-TokenFailed"] = null;
                             }
+                            TianCheng.Model.ApiException.ThrowBadRequest(context.Exception.Message);
+                            return Task.FromResult(0);
                         }
                         
                         TianCheng.Model.ApiException.ThrowBadRequest("您没有足够的权限进行本次操作。");

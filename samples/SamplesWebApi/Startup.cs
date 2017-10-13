@@ -21,15 +21,19 @@ namespace SamplesWebApi
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         public IConfigurationRoot Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
             // Add framework services.
-            //services.AddMvc();
-
+            //services.AddMvc();            
             services.TianChengInit(Configuration);
         }
 

@@ -47,7 +47,7 @@ namespace Microsoft.AspNetCore.Builder
             #region Logger
             loggerFactory.AddConsole(configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
-            loggerFactory.AddFile("Logs/Demo-{Date}.txt");
+            loggerFactory.AddFile("Logs/Runlog-{Date}.txt");
             #endregion
         }
 

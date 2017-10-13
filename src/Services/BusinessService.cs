@@ -78,7 +78,7 @@ namespace TianCheng.BaseService
             }
             //根据ID获取信息
             var info = _Dal.SearchById(id);
-           
+
             return info;
         }
 
@@ -93,6 +93,17 @@ namespace TianCheng.BaseService
             var info = _SearchById(id);
             //返回
             return AutoMapper.Mapper.Map<V>(info);
+        }
+        #endregion
+
+        #region 无条件查询所有
+        /// <summary>
+        /// 无条件查询所有
+        /// </summary>
+        /// <returns></returns>
+        public IQueryable<T> SearchQueryable()
+        {
+            return _Dal.SearchQueryable();
         }
         #endregion
 
@@ -124,13 +135,39 @@ namespace TianCheng.BaseService
             //返回查询结果
             return query;
         }
+        #endregion
+
+        #region 无分页数据查询
+        /// <summary>
+        /// 无分页查询 获取默认的View对象
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public List<V> Filter(Q input)
+        {
+            return Filter<V>(input);
+        }
+        /// <summary>
+        /// 无分页查询 获取指定的View对象
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public List<OV> Filter<OV>(Q input)
+        {
+            var list = _Filter(input).ToList();
+            var viewList = AutoMapper.Mapper.Map<List<OV>>(list);
+            return viewList ?? new List<OV>();
+        }
+        #endregion
+
+        #region 根据分页/分步信息过滤数据
         /// <summary>
         /// 设置分页信息
         /// </summary>
         /// <param name="filter">查询条件（包括分页及排序的信息）</param>
         /// <param name="queryResult">所有满足过滤条件的数据</param>
         /// <param name="resultPagination">返回的分页信息</param>
-        protected IQueryable<T> SetFilterPagination(Q filter, IQueryable<T> queryResult, PagedResultPagination resultPagination)
+        protected virtual IQueryable<T> SetFilterPagination(Q filter, IQueryable<T> queryResult, PagedResultPagination resultPagination)
         {
             #region 设置分页信息及返回值
             //初始化查询条件
@@ -150,13 +187,15 @@ namespace TianCheng.BaseService
 
             #endregion
         }
+        #endregion
 
+        #region 分步查询
         /// <summary>
-        /// 获取指定类型的返回值
+        /// 分步查询数据，返回实体对象信息
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual List<T> _FilterStep(Q input)
+        public List<T> _FilterStep(Q input)
         {
             var queryResult = _Filter(input);
             if (input.Pagination == null) input.Pagination = new QueryPagination() { Index = 1, PageMaxRecords = 10 };
@@ -172,51 +211,57 @@ namespace TianCheng.BaseService
 
             return queryResult.ToList();
         }
-
         /// <summary>
-        /// 获取指定类型的返回值
+        /// 分步查询数据，返回默认的View对象
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual List<TO> FilterStep<TO>(Q input)
+        public List<V> FilterStep(Q input)
+        {
+            return FilterStep<V>(input);
+        }
+        /// <summary>
+        /// 分步查询数据，返回指定的View对象
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public List<VO> FilterStep<VO>(Q input)
         {
             var infoList = _FilterStep(input);
-            return AutoMapper.Mapper.Map<List<TO>>(infoList);
+            return AutoMapper.Mapper.Map<List<VO>>(infoList);
         }
         #endregion
 
-        #region 数据查询
+        #region 分页查询
         /// <summary>
-        /// 无分页查询
+        /// 分页查询 返回默认的View对象
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual List<V> Filter(Q input)
+        public PagedResult<V> FilterPage(Q input)
         {
-            var list = _Filter(input).ToList();
-            var viewList = AutoMapper.Mapper.Map<List<V>>(list);
-            return viewList ?? new List<V>();
+            return FilterPage<V>(input);
         }
         /// <summary>
-        /// 分页查询
+        /// 分页查询 转换成指定的View对象
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual PagedResult<V> FilterPage(Q input)
+        public PagedResult<OV> FilterPage<OV>(Q input)
         {
             var queryResult = _Filter(input);
             PagedResultPagination pagination = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, pagination);
             var infoList = queryResult.ToList();
-            var viewList = AutoMapper.Mapper.Map<List<V>>(infoList);
-            return new PagedResult<V>(viewList, pagination);
+            var viewList = AutoMapper.Mapper.Map<List<OV>>(infoList);
+            return new PagedResult<OV>(viewList, pagination);
         }
         /// <summary>
-        /// 分页查询
+        /// 分页查询 获取实体对象
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual PagedResult<T> _FilterPage(Q input)
+        public PagedResult<T> _FilterPage(Q input)
         {
             var queryResult = _Filter(input);
             PagedResultPagination pagination = new PagedResultPagination();
@@ -225,26 +270,26 @@ namespace TianCheng.BaseService
 
             return new PagedResult<T>(infoList, pagination);
         }
+        #endregion
 
-
-
+        #region 下拉列表数据查询
         /// <summary>
         /// 获取一个查询列表对象形式的集合
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual List<SelectView> Select(Q input)
+        public List<SelectView> Select(Q input)
         {
             var list = _Filter(input);
             return AutoMapper.Mapper.Map<List<SelectView>>(list);
         }
 
         /// <summary>
-        /// 获取满足条件的前几条数据
+        /// 获取满足条件的前几条数据    input.Pagination.PageMaxRecords为指定的返回记录的最大条数
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual List<SelectView> SelectTop(Q input)
+        public List<SelectView> SelectTop(Q input)
         {
             var queryResult = _Filter(input);
             PagedResultPagination pagination = new PagedResultPagination();
@@ -258,14 +303,14 @@ namespace TianCheng.BaseService
         }
         #endregion
 
-        #region 无条件查询所有
+        #region Count
         /// <summary>
-        /// 无条件查询所有
+        /// 获取所有的记录条数
         /// </summary>
         /// <returns></returns>
-        public IQueryable<T> SearchQueryable()
+        public int Count()
         {
-            return _Dal.SearchQueryable();
+            return _Dal.Search().Count;
         }
         #endregion
         #endregion
@@ -576,7 +621,7 @@ namespace TianCheng.BaseService
         /// </summary>
         /// <param name="id"></param>
         /// <param name="logonInfo"></param>
-        public ResultView Review(string id , TokenLogonInfo logonInfo)
+        public ResultView Review(string id, TokenLogonInfo logonInfo)
         {
             var info = _SearchById(id);
             info.ReleaseDate = DateTime.Now;

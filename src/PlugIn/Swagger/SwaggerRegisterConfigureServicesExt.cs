@@ -128,22 +128,32 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 System.IO.Directory.CreateDirectory(xmlPath);
             }
+            StringBuilder sb = new StringBuilder();
 
             foreach (CompilationLibrary library in DependencyContext.Default.CompileLibraries)
             {
                 // 除了系统的库文件其它的程序集全部做查询处理
-                if(!library.Serviceable)
+                if (!library.Name.Contains("System.") && !library.Name.Contains("Microsoft.") &&
+                    !library.Name.Equals("Libuv") && !library.Name.Contains("NETStandard.") &&
+                    !library.Name.Contains("MongoDB.") && !library.Name.Contains("Serilog") && !library.Name.Contains("AutoMapper") &&
+                    !library.Name.Contains("Swashbuckle") && !library.Name.Contains("Newtonsoft"))
                 {
-                    Assembly assembly = Assembly.Load(new AssemblyName(library.Name));
-                    if (assembly != null && !String.IsNullOrWhiteSpace(assembly.Location))
+                    try
                     {
-                        string path = System.IO.Path.GetDirectoryName(assembly.Location);
-                        foreach (string file in System.IO.Directory.GetFiles(path, "*.xml"))
+                        Assembly assembly = Assembly.Load(new AssemblyName(library.Name));
+                        if (assembly != null && !String.IsNullOrWhiteSpace(assembly.Location))
                         {
-                            // 将xml文件拷贝到运行目录
-                            string desc = $"{xmlPath}\\{System.IO.Path.GetFileName(file)}";
-                            System.IO.File.Copy(file, desc, true);
+                            string path = System.IO.Path.GetDirectoryName(assembly.Location);
+                            foreach (string file in System.IO.Directory.GetFiles(path, "*.xml"))
+                            {
+                                // 将xml文件拷贝到运行目录
+                                string desc = $"{xmlPath}\\{System.IO.Path.GetFileName(file)}";
+                                System.IO.File.Copy(file, desc, true);
+                            }
                         }
+                    }
+                    catch
+                    {
                     }
                 }
             }
