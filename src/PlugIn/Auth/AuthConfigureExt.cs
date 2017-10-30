@@ -61,7 +61,7 @@ namespace Microsoft.AspNetCore.Builder
                     await next(context);
 
                 }
-                catch
+                catch(Exception ex)
                 {
                     // If the headers have already been sent, you can't replace the status code.
                     // In this case, re-throw the exception to close the connection.

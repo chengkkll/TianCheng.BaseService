@@ -11,6 +11,7 @@ namespace TianCheng.BaseService
     /// </summary>
     public class DataController : Controller
     {
+        private TokenLogonInfo _LogonInfo = null;
         /// <summary>
         /// 获取登录信息
         /// </summary>
@@ -18,31 +19,52 @@ namespace TianCheng.BaseService
         {
             get
             {
+                if(_LogonInfo != null)
+                {
+                    return _LogonInfo;
+                }
                 if (User == null || User.Claims == null)
                 {
                     return new TokenLogonInfo();
                 }
-                TokenLogonInfo info = new TokenLogonInfo();
+                _LogonInfo = new TokenLogonInfo();
                 foreach (var item in User.Claims)
                 {
-                    if (item.Type == "name")
+                    switch(item.Type)
                     {
-                        info.Name = item.Value;
-                    }
-                    if (item.Type == "id")
-                    {
-                        info.Id = item.Value;
-                    }
-                    if (item.Type == "roleId")
-                    {
-                        info.RoleId = item.Value;
-                    }
-                    if (item.Type == "depId")
-                    {
-                        info.DepartmentId = item.Value;
+                        case "name":
+                            {
+                                _LogonInfo.Name = item.Value;
+                                break;
+                            }
+                        case "id":
+                            {
+                                _LogonInfo.Id = item.Value;
+                                break;
+                            }
+                        case "roleId":
+                            {
+                                _LogonInfo.RoleId = item.Value;
+                                break;
+                            }
+                        case "depId":
+                            {
+                                _LogonInfo.DepartmentId = item.Value;
+                                break;
+                            }
+                        case "depName":
+                            {
+                                _LogonInfo.DepartmentName = item.Value;
+                                break;
+                            }
+                        case "function_policy":
+                            {
+                                _LogonInfo.FunctionPolicyList.Add(item.Value);
+                                break;
+                            }
                     }
                 }
-                return info;
+                return _LogonInfo;
             }
         }
     }

@@ -36,7 +36,12 @@ namespace Microsoft.AspNetCore.Builder
             app.UseCors("AllowAnyDomain");
 
             //允许访问磁盘文件
-            app.UseStaticFiles();
+            app.UseStaticFiles(
+            new StaticFileOptions
+            {
+                ServeUnknownFileTypes = true
+            });
+
 
             //设置MVC
             app.UseMvc();

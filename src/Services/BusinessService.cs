@@ -204,7 +204,7 @@ namespace TianCheng.BaseService
 
             PagedResultPagination resultPage = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, resultPage);
-            if (resultPage.TotalPage < input.Pagination.Index)
+            if (resultPage.TotalPage < input.Pagination.Index)  // 如果查询到最后一页，返回空列表
             {
                 return new List<T>();
             }
@@ -311,6 +311,16 @@ namespace TianCheng.BaseService
         public int Count()
         {
             return _Dal.Search().Count;
+        }
+        /// <summary>
+        /// 根据条件获取记录数量
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public int Count(Q input)
+        {
+            var queryResult = _Filter(input);
+            return queryResult.Count();
         }
         #endregion
         #endregion
