@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Linq;
+using TianCheng.DAL;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -17,6 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services"></param>
         public static void AddBusinessServices(this IServiceCollection services)
         {
+            // 注册Service
             foreach (Type type in TianCheng.Model.AssemblyHelper
                 .GetTypeByInterfaceName("TianCheng.BaseService.IServiceRegister"))
             {
@@ -25,8 +27,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     services.AddTransient(type);
                 }
             }
-
-            foreach (var type in TianCheng.Model.AssemblyHelper.GetTypeByBaseClassName("DALCommon"))
+            // 注册数据库操作
+            foreach (var type in TianCheng.Model.AssemblyHelper.GetTypeByInterfaceName("IDBOperation`1"))
             {
                 services.AddTransient(type);
             }

@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using TianCheng.BaseService;
+
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -19,11 +21,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configuration"></param>
-        public static void TianChengInit(this IServiceCollection services, IConfigurationRoot configuration)
+        public static void TianChengInit(this IServiceCollection services, IConfiguration configuration)
         {
             // IServiceProvider serviceProvider = services.BuildServiceProvider();
+            // IConfigurationRoot configuration = services.BuildServiceProvider().GetService<IConfigurationRoot>();
 
             if (IsInit) return;
+
+            TianCheng.Model.CommonLog.Logger.LogInformation("ConfigureServices - TianCheng.BaseService");
             //设置跨域
             services.AddCors(options =>
             options.AddPolicy("AllowAnyDomain",
@@ -42,6 +47,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             //AuotMapper的对象注册
             TianCheng.BaseService.AutoMapperExtension.InitializeMappers();
+            //初始化数据库注册信息
+            TianCheng.DAL.MongoDB.Register.Init();
 
             //读取配置信息
             services.AddOptions();
@@ -60,16 +67,21 @@ namespace Microsoft.Extensions.DependencyInjection
 
                         IServiceExtOption extOptions = (IServiceExtOption)cons.Invoke(parameters);
                         extOptions.SetOption();
+                        continue;
+                    }
+                    if (pl.Length == 0)
+                    {                        
+                        IServiceExtOption extOption = (IServiceExtOption)type.Assembly.CreateInstance(type.FullName);
+                        extOption.SetOption();
+                        continue;
                     }
 
                 }
             }
 
             //swagger
-            services.SwaggerRegister(configuration);
+            services.SwaggerRegister();
 
-            //注册所有的权限-功能点信息
-            services.AddPolicy();
             //auth 登录权限控制
             services.AuthConfigureServices(configuration);
 

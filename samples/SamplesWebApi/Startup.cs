@@ -10,21 +10,23 @@ using Microsoft.Extensions.Logging;
 
 namespace SamplesWebApi
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class Startup
     {
-        public Startup(IHostingEnvironment env)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="configuration"></param>
+        public Startup(IConfiguration configuration)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            Configuration = configuration;
         }
         /// <summary>
         /// 
         /// </summary>
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
 
         /// <summary>
         /// 
@@ -32,20 +34,22 @@ namespace SamplesWebApi
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            //services.AddMvc();            
             services.TianChengInit(Configuration);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        ///  This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        /// <param name="app"></param>
+        /// <param name="env"></param>
+        /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
-            //loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            //loggerFactory.AddDebug();
-            //app.UseMvc();
-
-            app.TianChengInitUnAuth(Configuration, loggerFactory);
-            
+            //if (env.IsDevelopment())
+            //{
+            //    app.UseDeveloperExceptionPage();
+            //}
+            app.TianChengInit(Configuration);
         }
     }
 }

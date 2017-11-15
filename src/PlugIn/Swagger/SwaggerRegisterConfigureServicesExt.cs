@@ -21,8 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// 
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="configuration"></param>
-        static public void SwaggerRegister(this IServiceCollection services, IConfigurationRoot configuration)
+        static public void SwaggerRegister(this IServiceCollection services)
         {
             //拷贝引用程序集目录下的xml文件
             CopyXmlFile();
@@ -75,9 +74,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 //var basePath = System.IO.Path.Combine(
                 //    PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath,
                 //    doc.XmlPath);
-                var basePath = PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
-                List<string> fileList = new List<string>();
+                //var basePath = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
 
+                var host = services.BuildServiceProvider().GetService<AspNetCore.Hosting.IHostingEnvironment>();
+                var basePath = host.ContentRootPath;
+
+                List<string> fileList = new List<string>();
 
                 foreach (var file in GetXmlFile(basePath))
                 {
