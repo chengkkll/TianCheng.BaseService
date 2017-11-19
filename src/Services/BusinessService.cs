@@ -81,18 +81,18 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public T _SearchById(string id)
         {
+            _logger.LogTrace($"根据ID查询对象（_SearchById），对象类型为：[{typeof(T).FullName}]");
             // 必须输入ID
             if (String.IsNullOrWhiteSpace(id))
             {
+                _logger.LogWarning($"按ID查询对象时，ID不能为空。类型为：[{typeof(T).FullName}]");
                 throw ApiException.BadRequest("请求的id不能为空。");
             }
             // 根据ID获取信息
             var info = _Dal.SearchById(id);
+            _logger.LogTrace($"根据ID查询对象，已获取对象。类型为：[{typeof(T).FullName}]\r\n对象值：[{info.ToJson()}]");
             // 查询到Info对象后的事件处理
-            if (OnSearchInfoById != null)
-            {
-                OnSearchInfoById(info);
-            }
+            OnSearchInfoById?.Invoke(info);
             return info;
         }
 
@@ -103,17 +103,15 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public virtual V SearchById(string id)
         {
+            _logger.LogTrace($"根据ID查询对象（SearchById），对象类型为：[{typeof(V).FullName}]");
             //根据ID获取员工信息
             var info = _SearchById(id);
             //返回
             V view = AutoMapper.Mapper.Map<V>(info);
 
             // 转换View后的事件处理
-            if (OnSearchViewById != null)
-            {
-                OnSearchViewById(view);
-            }
-
+            OnSearchViewById?.Invoke(view);
+            _logger.LogTrace($"根据ID查询对象，已获取对象。类型为：[{typeof(V).FullName}]\r\n对象值：[{view.ToJson()}]");
             return view;
         }
         #endregion
@@ -137,6 +135,8 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public virtual IQueryable<T> _Filter(Q input)
         {
+            _logger.LogTrace($"按条件查询（IQueryable<T> _Filter(Q input)）。查询结果对象类型为：[{typeof(T).FullName}]\r\n查询条件对象类型为：[{typeof(Q).FullName}]\r\n查询条件为：[{input.ToJson()}]");
+
             var query = _Dal.Queryable();
 
             #region 查询条件
@@ -166,6 +166,7 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public List<V> Filter(Q input)
         {
+            _logger.LogTrace($"按条件无分页查询（List<V> Filter(Q input)）。查询结果对象类型为：[{typeof(V).FullName}]\r\n查询条件对象类型为：[{typeof(Q).FullName}]\r\n查询条件为：[{input.ToJson()}]");
             return Filter<V>(input);
         }
         /// <summary>
@@ -175,6 +176,7 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public List<OV> Filter<OV>(Q input)
         {
+            _logger.LogTrace($"按条件无分页查询-获取指定的View对象 （List<OV> Filter<OV>(Q input)）。查询结果对象类型为：[{typeof(OV).FullName}]\r\n查询条件对象类型为：[{typeof(Q).FullName}]\r\n查询条件为：[{input.ToJson()}]");
             var list = _Filter(input).ToList();
             var viewList = AutoMapper.Mapper.Map<List<OV>>(list);
             return viewList ?? new List<OV>();
@@ -190,6 +192,7 @@ namespace TianCheng.BaseService
         /// <param name="resultPagination">返回的分页信息</param>
         protected virtual IQueryable<T> SetFilterPagination(Q filter, IQueryable<T> queryResult, PagedResultPagination resultPagination)
         {
+            _logger.LogTrace($"设置数据分页效果 （IQueryable<T> SetFilterPagination(Q filter, IQueryable<T> queryResult, PagedResultPagination resultPagination)）。查询结果对象类型为：[{typeof(T).FullName}]\r\n查询条件对象类型为：[{typeof(Q).FullName}]\r\n查询条件为：[{filter.ToJson()}]\r\n分页数据为：[{resultPagination.ToJson()}]");
             #region 设置分页信息及返回值
             //初始化查询条件
             if (filter.Pagination == null) filter.Pagination = QueryPagination.DefaultObject;
@@ -218,6 +221,7 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public List<T> _FilterStep(Q input)
         {
+            _logger.LogTrace($"设置分步查询数据 （List<T> _FilterStep(Q input)）。查询结果对象类型为：[{typeof(T).FullName}]\r\n查询条件对象类型为：[{typeof(Q).FullName}]\r\n查询条件为：[{input.ToJson()}]");
             var queryResult = _Filter(input);
             if (input.Pagination == null) input.Pagination = new QueryPagination() { Index = 1, PageMaxRecords = 10 };
             if (input.Pagination.Index <= 0) input.Pagination.Index = 1;
@@ -288,7 +292,6 @@ namespace TianCheng.BaseService
             PagedResultPagination pagination = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, pagination);
             var infoList = queryResult.ToList();
-
             return new PagedResult<T>(infoList, pagination);
         }
         #endregion
@@ -331,6 +334,7 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public int Count()
         {
+            _logger.LogTrace($"查询记录总条数 （int Count()）。查询对象类型为：[{typeof(T).FullName}]");
             return _Dal.Queryable().Count();
         }
         /// <summary>
@@ -340,6 +344,7 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public int Count(Q input)
         {
+            _logger.LogTrace($"查询记录总条数 （int Count()）。查询对象类型为：[{typeof(T).FullName}]\r\n查询条件对象[{typeof(Q).FullName}]\r\n查询条件：[{input.ToJson()}]");
             var queryResult = _Filter(input);
             return queryResult.Count();
         }
@@ -424,6 +429,7 @@ namespace TianCheng.BaseService
         protected virtual void Removed(T info, TokenLogonInfo logonInfo) { }
         #endregion
 
+        #region 逻辑删除
         /// <summary>
         /// 逻辑删除
         /// </summary>
@@ -432,35 +438,54 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public ResultView Delete(string id, TokenLogonInfo logonInfo)
         {
-            // 判断id是否有对应数据
-            T info = _SearchById(id);
-            // 判断对应数据是否可以删除.
-            DeleteRemoveCheck(info);
-
-            DeleteCheck(info);
-            // 逻辑删除前置事件处理
-            if (OnDeleting != null)
-            {
-                OnDeleting(info, logonInfo);
-            }
-            // 设置删除状态
-            info.UpdateDate = DateTime.Now;
-            info.UpdaterId = logonInfo.Id;
-            info.UpdaterName = logonInfo.Name;
-            info.IsDelete = true;
-
-            // 持久化数据
-            _Dal.Update(info);
-            Deleted(info, logonInfo);
-            // 逻辑删除后置事件处理
-            if (OnDeleted != null)
-            {
-                OnDeleted(info, logonInfo);
-            }
-            // 返回保存结果
-            return ResultView.Success(id);
+            // 为了做删除的前后置操作，所以先获取要删除的数据，再做删除处理
+            return Remove(_SearchById(id), logonInfo);
         }
+        /// <summary>
+        /// 逻辑删除
+        /// </summary>
+        /// <param name="info">要删除的数据id</param>
+        /// <param name="logonInfo">登录的用户信息</param>
+        /// <returns></returns>
+        public ResultView Delete(T info, TokenLogonInfo logonInfo)
+        {
+            if (info == null)
+            {
+                throw ApiException.EmptyData("无法找到要删除的数据");
+            }
+            string id = info.Id.ToString();
+            _logger.LogTrace($"逻辑删除 ==> 类型为：[{typeof(T).FullName}]\t删除ID为：[{id}]");
+            try
+            {
+                // 判断对应数据是否可以删除.
+                DeleteRemoveCheck(info);
+                DeleteCheck(info);
+                // 逻辑删除前置事件处理
+                OnDeleting?.Invoke(info, logonInfo);
+                // 设置逻辑删除状态
+                info.UpdateDate = DateTime.Now;
+                info.UpdaterId = logonInfo.Id;
+                info.UpdaterName = logonInfo.Name;
+                info.IsDelete = true;
 
+                // 持久化数据
+                _Dal.Update(info);
+                // 逻辑删除的后置处理
+                Deleted(info, logonInfo);
+                // 逻辑删除后置事件处理
+                OnDeleted?.Invoke(info, logonInfo);
+                // 返回保存结果
+                return ResultView.Success(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"逻辑删除异常 ==> 类型为：[{typeof(T).FullName}]\t删除ID为：[{id}]\r\n删除对象：[{info.ToJson()}]");
+                throw;
+            }
+        }
+        #endregion
+
+        #region 物理删除
         /// <summary>
         /// 物理删除
         /// </summary>
@@ -469,9 +494,8 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public ResultView Remove(string id, TokenLogonInfo logonInfo)
         {
-            //判断id是否有对应数据
-            T info = _SearchById(id);
-            return Remove(info, logonInfo);
+            // 为了做删除的前后置操作，所以先获取要删除的数据，再做删除处理
+            return Remove(_SearchById(id), logonInfo);
         }
         /// <summary>
         /// 物理删除
@@ -483,63 +507,88 @@ namespace TianCheng.BaseService
         {
             if (info == null)
             {
-                throw ApiException.EmptyData("删除的数据无法找到，");
+                throw ApiException.EmptyData("无法找到要删除的数据");
             }
-            //判断对应数据是否可以删除.
-            DeleteRemoveCheck(info);
-            RemoveCheck(info);
-            // 物理删除时的前置事件处理
-            if (OnRemoving != null)
+            string id = info.Id.ToString();
+            _logger.LogTrace($"物理删除 ==> 类型为：[{typeof(T).FullName}]\t删除ID为：[{id}]");
+            try
             {
-                OnRemoving(info, logonInfo);
+                // 判断对应数据是否可以删除.
+                DeleteRemoveCheck(info);
+                RemoveCheck(info);
+                // 物理删除时的前置事件处理
+                OnRemoving?.Invoke(info, logonInfo);
+                // 持久化数据
+                _Dal.Remove(info);
+                // 物理删除的后置处理
+                Removed(info, logonInfo);
+                // 物理删除时的后置事件处理
+                OnRemoved?.Invoke(info, logonInfo);
+                // 返回保存结果
+                return ResultView.Success(info.Id.ToString());
             }
-            //持久化数据
-            _Dal.Remove(info);
-            Removed(info, logonInfo);
-            // 物理删除时的后置事件处理
-            if (OnRemoved != null)
+            catch (Exception ex)
             {
-                OnRemoved(info, logonInfo);
+                _logger.LogError(ex, $"物理删除异常 ==> 类型为：[{typeof(T).FullName}]\t删除ID为：[{id}]]\r\n删除对象为：[{info.ToJson()}]");
+                throw;
             }
-            //返回保存结果
-            return ResultView.Success(info.Id.ToString());
         }
+        #endregion
 
+        #region 还原删除
         /// <summary>
-        /// 取消逻辑删除
+        /// 
         /// </summary>
         /// <param name="id"></param>
         /// <param name="logonInfo"></param>
         /// <returns></returns>
         public virtual ResultView UnDelete(string id, TokenLogonInfo logonInfo)
         {
-            // 判断id是否有对应数据
-            T info = _SearchById(id);
-
-            // 取消逻辑删除的前置事件处理
-            if (OnUnDeleting != null)
-            {
-                OnUnDeleting(info, logonInfo);
-            }
-            // 取消删除状态
-            info.UpdateDate = DateTime.Now;
-            info.UpdaterId = logonInfo.Id;
-            info.UpdaterName = logonInfo.Name;
-            info.IsDelete = false;
-
-            // 持久化数据
-            _Dal.Update(info);
-            UnDeleted(info, logonInfo);
-
-            // 取消逻辑删除的后置事件处理
-            if (OnUnDeleted != null)
-            {
-                OnUnDeleted(info, logonInfo);
-            }
-
-            // 返回保存结果
-            return ResultView.Success(id);
+            // 为了做还原删除的前后置操作，所以先获取要还原的数据，再做还原处理
+            return Remove(_SearchById(id), logonInfo);
         }
+        /// <summary>
+        /// 取消逻辑删除
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="logonInfo"></param>
+        /// <returns></returns>
+        public virtual ResultView UnDelete(T info, TokenLogonInfo logonInfo)
+        {
+            // 判断id是否有对应数据
+            if (info == null)
+            {
+                throw ApiException.EmptyData("无法找到要还原的数据");
+            }
+            string id = info.Id.ToString();
+            _logger.LogTrace($"还原删除数据 ==> 类型为：[{typeof(T).FullName}]\t还原ID为：[{id}]");
+            try
+            {
+                // 取消逻辑删除的前置事件处理
+                OnUnDeleting?.Invoke(info, logonInfo);
+                // 取消删除状态
+                info.UpdateDate = DateTime.Now;
+                info.UpdaterId = logonInfo.Id;
+                info.UpdaterName = logonInfo.Name;
+                info.IsDelete = false;
+
+                // 持久化数据
+                _Dal.Update(info);
+                // 还原的后置操作
+                UnDeleted(info, logonInfo);
+                // 取消还原删除的后置事件处理
+                OnUnDeleted?.Invoke(info, logonInfo);
+
+                // 返回保存结果
+                return ResultView.Success(id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"还原删除数据异常 ==> 类型为：[{typeof(T).FullName}]\t还原ID为：[{id}]\r\n还原对象：[{info.ToJson()}]");
+                throw;
+            }
+        }
+        #endregion
 
         #endregion
 
@@ -658,8 +707,8 @@ namespace TianCheng.BaseService
         /// <summary>
         /// 创建一个对象信息
         /// </summary>
-        /// <param name="view"></param>
-        /// <param name="logonInfo"></param>
+        /// <param name="view">更新对象</param>
+        /// <param name="logonInfo">登录人信息</param>
         /// <returns></returns>
         public virtual ResultView Create(V view, TokenLogonInfo logonInfo)
         {
@@ -670,82 +719,78 @@ namespace TianCheng.BaseService
         /// <summary>
         /// 创建一个对象信息
         /// </summary>
-        /// <param name="info"></param>
-        /// <param name="logonInfo"></param>
+        /// <param name="info">新增对象</param>
+        /// <param name="logonInfo">登录人信息</param>
         /// <returns></returns>
         public virtual ResultView Create(T info, TokenLogonInfo logonInfo)
         {
-            // 新增数据前的预制数据
-            info.CreateDate = DateTime.Now;
-            info.UpdateDate = DateTime.Now;
-            info.UpdaterId = logonInfo.Id;
-            info.UpdaterName = logonInfo.Name;
-            info.CreaterId = logonInfo.Id;
-            info.CreaterName = logonInfo.Name;
-            info.IsDelete = false;
-            info.ProcessState = ProcessState.Edit;
+            if (info == null)
+            {
+                ApiException.ThrowBadRequest("新增对象不能为空");
+            }
+            _logger.LogTrace($"新增一个对象信息 ==> 类型为：[{typeof(T).FullName}]\r\n新增对象：[{info.ToJson()}]");
 
-            #region 保存验证
-            // 保存的数据校验
-            SavingCheck(info, logonInfo);
-            // 判断是否可以执行新增操作
-            if (!IsExecuteCreate(info, logonInfo)) return ResultView.Success();
-            // 保存数据验证的事件处理
-            if (OnCreatingCheck != null)
+            try
             {
-                OnCreatingCheck(info, logonInfo);
-            }
-            if (OnSaveCheck != null)
-            {
-                OnSaveCheck(info, logonInfo);
-            }
-            #endregion
+                // 新增数据前的预制数据
+                info.CreateDate = DateTime.Now;
+                info.UpdateDate = DateTime.Now;
+                info.UpdaterId = logonInfo.Id;
+                info.UpdaterName = logonInfo.Name;
+                info.CreaterId = logonInfo.Id;
+                info.CreaterName = logonInfo.Name;
+                info.IsDelete = false;
+                info.ProcessState = ProcessState.Edit;
 
-            #region 保存的前置处理
-            // 新增的前置操作，可以被重写
-            Creating(info, logonInfo);
-            // 新增/保存的通用前置操作，可以被重写
-            Saving(info, logonInfo);
-            // 新增时的前置事件处理
-            if (OnCreating != null)
-            {
-                OnCreating(info, logonInfo);
-            }
-            if (OnSaving != null)
-            {
-                OnSaving(info, logonInfo);
-            }
-            #endregion
+                #region 保存验证
+                // 保存的数据校验
+                SavingCheck(info, logonInfo);
+                // 判断是否可以执行新增操作
+                if (!IsExecuteCreate(info, logonInfo)) return ResultView.Success();
+                // 保存数据验证的事件处理
+                OnCreatingCheck?.Invoke(info, logonInfo);
+                OnSaveCheck?.Invoke(info, logonInfo);
+                #endregion
 
-            // 持久化数据
-            _Dal.Insert(info);
+                #region 保存的前置处理
+                // 新增的前置操作，可以被重写
+                Creating(info, logonInfo);
+                // 新增/保存的通用前置操作，可以被重写
+                Saving(info, logonInfo);
+                // 新增时的前置事件处理
+                OnCreating?.Invoke(info, logonInfo);
+                OnSaving?.Invoke(info, logonInfo);
+                #endregion
 
-            #region 保存后置处理
-            // 新增的通用后置操作，可以被重写
-            Created(info, logonInfo);
-            // 新增/保存的通用后置操作，可以被重写
-            Saved(info, logonInfo);
-            // 新增后的后置事件处理
-            if (OnCreated != null)
-            {
-                OnCreated(info, logonInfo);
-            }
-            if (OnSaved != null)
-            {
-                OnSaved(info, logonInfo);
-            }
-            #endregion
+                // 持久化数据
+                _Dal.Insert(info);
 
-            // 返回保存结果
-            return ResultView.Success(info.Id);
+                #region 保存后置处理
+                // 新增的通用后置操作，可以被重写
+                Created(info, logonInfo);
+                // 新增/保存的通用后置操作，可以被重写
+                Saved(info, logonInfo);
+                // 新增后的后置事件处理
+                OnCreated?.Invoke(info, logonInfo);
+                OnSaved?.Invoke(info, logonInfo);
+                #endregion
+
+                // 返回保存结果
+                return ResultView.Success(info.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"新增一个对象信息异常 ==> 类型为：[{typeof(T).FullName}]\r\n操作人信息：[{logonInfo.ToJson()}]\r\n新增对象：[{info.ToJson()}]");
+                throw;
+            }
         }
 
 
         /// <summary>
         /// 更新一个对象信息
         /// </summary>
-        /// <param name="view"></param>
-        /// <param name="logonInfo"></param>
+        /// <param name="view">更新对象</param>
+        /// <param name="logonInfo">登录人信息</param>
         /// <returns></returns>
         public virtual ResultView Update(V view, TokenLogonInfo logonInfo)
         {
@@ -756,95 +801,92 @@ namespace TianCheng.BaseService
         /// <summary>
         /// 更新一个对象信息
         /// </summary>
-        /// <param name="info"></param>
-        /// <param name="logonInfo"></param>
+        /// <param name="info">更新对象</param>
+        /// <param name="logonInfo">登录人信息</param>
         /// <returns></returns>
         public virtual ResultView Update(T info, TokenLogonInfo logonInfo)
         {
-            // 根据ID获取原数据信息
-            var old = _SearchById(info.Id.ToString());
-            // 更新数据前的预制数据
-            info.CreateDate = old.CreateDate;
-            info.CreaterId = old.CreaterId;
-            info.CreaterName = old.CreaterName;
-            info.UpdateDate = DateTime.Now;
-            info.UpdaterId = logonInfo.Id;
-            info.UpdaterName = logonInfo.Name;
-            info.IsDelete = false;
-            if (info.ProcessState == ProcessState.None)
+            if (info == null)
             {
-                info.ProcessState = ProcessState.Edit;
+                ApiException.ThrowBadRequest("更新对象不能为空");
             }
+            _logger.LogTrace($"更新一个对象信息 ==> 类型为：[{typeof(T).FullName}]\r\n操作人信息：[{logonInfo.ToJson()}]\r\n更新对象：[{info.ToJson()}]");
 
-            #region 保存验证
-            // 保存的数据校验，可以被重写
-            SavingCheck(info, logonInfo);
-            if (OnUpdateCheck != null)
+            try
             {
-                OnUpdateCheck(info, old, logonInfo);
-            }
-            if (OnSaveCheck != null)
-            {
-                OnSaveCheck(info, logonInfo);
-            }
-            // 判断是否可以执行新增操作，可以被重写
-            if (!IsExecuteUpdate(info, old, logonInfo)) return ResultView.Success();
-            #endregion
+                // 根据ID获取原数据信息
+                var old = _SearchById(info.Id.ToString());
+                // 更新数据前的预制数据
+                info.CreateDate = old.CreateDate;
+                info.CreaterId = old.CreaterId;
+                info.CreaterName = old.CreaterName;
+                info.UpdateDate = DateTime.Now;
+                info.UpdaterId = logonInfo.Id;
+                info.UpdaterName = logonInfo.Name;
+                info.IsDelete = false;
+                if (info.ProcessState == ProcessState.None)
+                {
+                    info.ProcessState = ProcessState.Edit;
+                }
 
-            #region 保存的前置处理        
-            // 更新的前置操作，可以被重写
-            Updating(info, old, logonInfo);
-            // 新增/保存的通用前置操作，可以被重写
-            Saving(info, logonInfo);
-            // 事件处理
-            if (OnUpdating != null)
-            {
-                OnUpdating(info, old, logonInfo);
-            }
-            if (OnSaving != null)
-            {
-                OnSaving(info, logonInfo);
-            }
-            #endregion
+                #region 保存验证
+                // 保存的数据校验，可以被重写
+                SavingCheck(info, logonInfo);
+                OnUpdateCheck?.Invoke(info, old, logonInfo);
+                OnSaveCheck?.Invoke(info, logonInfo);
+                // 判断是否可以执行新增操作，可以被重写
+                if (!IsExecuteUpdate(info, old, logonInfo)) return ResultView.Success();
+                #endregion
 
-            // 持久化数据
-            _Dal.Update(info);
+                #region 保存的前置处理        
+                // 更新的前置操作，可以被重写
+                Updating(info, old, logonInfo);
+                // 新增/保存的通用前置操作，可以被重写
+                Saving(info, logonInfo);
+                // 事件处理
+                OnUpdating?.Invoke(info, old, logonInfo);
+                OnSaving?.Invoke(info, logonInfo);
+                #endregion
 
-            #region 保存后置处理
-            // 更新的后置操作，可以被重写
-            Updated(info, old, logonInfo);
-            // 新增/保存的通用后置操作，可以被重写
-            Saved(info, logonInfo);
-            // 新增后的后置事件处理
-            if (OnUpdated != null)
-            {
-                OnUpdated(info, old, logonInfo);
-            }
-            if (OnSaved != null)
-            {
-                OnSaved(info, logonInfo);
-            }
-            #endregion
+                // 持久化数据
+                _Dal.Update(info);
 
-            // 返回保存结果
-            return ResultView.Success(info.Id);
+                #region 保存后置处理
+                // 更新的后置操作，可以被重写
+                Updated(info, old, logonInfo);
+                // 新增/保存的通用后置操作，可以被重写
+                Saved(info, logonInfo);
+                // 新增后的后置事件处理
+                OnUpdated?.Invoke(info, old, logonInfo);
+                OnSaved?.Invoke(info, logonInfo);
+                #endregion
+
+                // 返回保存结果
+                return ResultView.Success(info.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"更新一个对象信息异常 ==> 类型为：[{typeof(T).FullName}]\r\n操作人信息：[{logonInfo.ToJson()}]\r\n更新对象：[{info.ToJson()}]");
+                throw;
+            }
         }
         #endregion
 
-        #region 审核操作
+        #region 审核操作 应单建一个流程子对象处理流程信息
         /// <summary>
         /// 审核通过
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="logonInfo"></param>
-        public ResultView Review(string id, TokenLogonInfo logonInfo)
+        /// <param name="id">审核对象ID</param>
+        /// <param name="logonInfo">登录人信息</param>
+        /// <param name="state">审核状态</param>
+        public ResultView Review(string id, TokenLogonInfo logonInfo, ProcessState state = ProcessState.Review)
         {
             var info = _SearchById(id);
             info.ReleaseDate = DateTime.Now;
             info.UpdateDate = DateTime.Now;
             info.UpdaterId = logonInfo.Id;
             info.UpdaterName = logonInfo.Name;
-            info.ProcessState = ProcessState.Review;
+            info.ProcessState = state;
             _Dal.Update(info);
             return ResultView.Success(info.Id);
         }
@@ -852,16 +894,17 @@ namespace TianCheng.BaseService
         /// <summary>
         /// 审核拒绝
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="logonInfo"></param>
-        public ResultView ReviewDisagreed(string id, TokenLogonInfo logonInfo)
+        /// <param name="id">审核对象ID</param>
+        /// <param name="logonInfo">登录人信息</param>
+        /// <param name="state">审核拒绝状态</param>
+        public ResultView ReviewDisagreed(string id, TokenLogonInfo logonInfo, ProcessState state = ProcessState.Apply)
         {
             var info = _SearchById(id);
             info.ReleaseDate = DateTime.Now;
             info.UpdateDate = DateTime.Now;
             info.UpdaterId = logonInfo.Id;
             info.UpdaterName = logonInfo.Name;
-            info.ProcessState = ProcessState.Apply;
+            info.ProcessState = state;
             _Dal.Update(info);
             return ResultView.Success(info.Id);
         }
