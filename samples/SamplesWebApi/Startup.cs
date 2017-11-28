@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace SamplesWebApi
 {
@@ -35,6 +36,7 @@ namespace SamplesWebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.TianChengInit(Configuration);
+
         }
 
         /// <summary>

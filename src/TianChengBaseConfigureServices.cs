@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -37,6 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             //根据IServiceRegister 接口来注册能找到的服务
             services.AddBusinessServices();
+            services.TryAddSingleton<Microsoft.AspNetCore.Http.IHttpContextAccessor, Microsoft.AspNetCore.Http.HttpContextAccessor>();
 
             //注册MVC及异常的过滤处理
             services.AddMvc(options =>

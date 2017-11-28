@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,16 +25,41 @@ namespace TianCheng.BaseService
         /// 具体业务日志工具
         /// </summary>
         protected readonly ILogger<BusinessService<T, V, Q>> _logger;
+        /// <summary>
+        /// 
+        /// </summary>
+        protected readonly IServiceProvider _ServicesProvider;
+
+        private HttpContext _context = null;
+        /// <summary>
+        /// 
+        /// </summary>
+        protected HttpContext _Context
+        {
+            get
+            {
+                if (_context == null)
+                {
+                    object factory = _ServicesProvider.GetService(typeof(Microsoft.AspNetCore.Http.IHttpContextAccessor));
+                    _context = ((Microsoft.AspNetCore.Http.HttpContextAccessor)factory).HttpContext;                    
+                }
+                return _context;
+            }
+        }
+
+
 
         /// <summary>
         /// 构造方法
         /// </summary>
         /// <param name="dal"></param>
         /// <param name="logger"></param>
-        public BusinessService(MongoOperation<T> dal, ILogger<BusinessService<T, V, Q>> logger)
+        /// <param name="servicesProvider"></param>
+        public BusinessService(MongoOperation<T> dal, ILogger<BusinessService<T, V, Q>> logger, IServiceProvider servicesProvider)
         {
             _Dal = dal;
             _logger = logger;
+            _ServicesProvider = servicesProvider;
         }
         #endregion
 
@@ -106,6 +132,13 @@ namespace TianCheng.BaseService
             _logger.LogTrace($"根据ID查询对象（SearchById），对象类型为：[{typeof(V).FullName}]");
             //根据ID获取员工信息
             var info = _SearchById(id);
+            // 如果查询不到数据，抛出404异常
+            if (info == null)
+            {
+                _logger.LogWarning($"根据ID查询对象，无法找到数据。类型为：[{typeof(V).FullName}]\r\nid值：[{id}]");
+                ApiException.ThrowEmptyData("无法找到您要的数据");
+            }
+
             //返回
             V view = AutoMapper.Mapper.Map<V>(info);
 
@@ -231,6 +264,7 @@ namespace TianCheng.BaseService
             queryResult = SetFilterPagination(input, queryResult, resultPage);
             if (resultPage.TotalPage < input.Pagination.Index)  // 如果查询到最后一页，返回空列表
             {
+
                 return new List<T>();
             }
 
@@ -278,6 +312,10 @@ namespace TianCheng.BaseService
             PagedResultPagination pagination = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, pagination);
             var infoList = queryResult.ToList();
+            if (infoList.Count == 0)
+            {
+                _Context.Response.StatusCode = 204;
+            }
             var viewList = AutoMapper.Mapper.Map<List<OV>>(infoList);
             return new PagedResult<OV>(viewList, pagination);
         }
@@ -292,6 +330,10 @@ namespace TianCheng.BaseService
             PagedResultPagination pagination = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, pagination);
             var infoList = queryResult.ToList();
+            if (infoList.Count == 0)
+            {
+                _Context.Response.StatusCode = 204;
+            }
             return new PagedResult<T>(infoList, pagination);
         }
         #endregion

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SamplesWebApi.Controllers
 {
@@ -14,13 +16,20 @@ namespace SamplesWebApi.Controllers
     public class ValuesController : Controller
     {
         private readonly ILogger<ValuesController> _logger;
+        protected HttpContext _Context;
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public ValuesController(ILogger<ValuesController> logger)
+        public ValuesController(ILogger<ValuesController> logger, IServiceProvider servicesProvider)
         {
             _logger = logger;
+
+
+            var provider = servicesProvider;
+
+            object factory = servicesProvider.GetService(typeof(Microsoft.AspNetCore.Http.IHttpContextAccessor));
+            _Context = ((Microsoft.AspNetCore.Http.HttpContextAccessor)factory).HttpContext;
         }
         /// <summary>
         ///  GET api/values
@@ -29,6 +38,7 @@ namespace SamplesWebApi.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
+            _Context.Response.StatusCode = 204;
             return new string[] { "value1", "value2" };
         }
 
