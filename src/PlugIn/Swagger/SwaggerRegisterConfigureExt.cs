@@ -44,7 +44,17 @@ namespace Microsoft.AspNetCore.Builder
             {
                 options.SwaggerEndpoint(doc.EndpointUrl, doc.EndpointDesc);
                 options.ShowRequestHeaders();
-            });            
+                // 增加定制的JS文件
+                options.InjectOnCompleteJavaScript("/swagger-custom-ui/on-complete.js");
+            });
+
+            // 设置从嵌入资源中读取文件
+            app.UseFileServer(new FileServerOptions()
+            {
+                RequestPath = "/swagger-custom-ui",
+                EnableDefaultFiles = true,
+                FileProvider = new SwaggerCustomFileProvider()
+            });
             #endregion
         }
     }

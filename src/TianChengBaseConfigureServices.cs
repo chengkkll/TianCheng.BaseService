@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using TianCheng.BaseService;
-
+using TianCheng.BaseService.Services;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -28,6 +28,10 @@ namespace Microsoft.Extensions.DependencyInjection
             // IConfigurationRoot configuration = services.BuildServiceProvider().GetService<IConfigurationRoot>();
 
             if (IsInit) return;
+
+            // ServiceLoader.Services = services;
+            TianCheng.DAL.Interface.Appsettings.Services = services;
+            TianCheng.Model.ServiceLoader.Services = services;
 
             TianCheng.Model.CommonLog.Logger.LogInformation("ConfigureServices - TianCheng.BaseService");
             //设置跨域
@@ -72,7 +76,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         continue;
                     }
                     if (pl.Length == 0)
-                    {                        
+                    {
                         IServiceExtOption extOption = (IServiceExtOption)type.Assembly.CreateInstance(type.FullName);
                         extOption.SetOption();
                         continue;

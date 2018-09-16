@@ -65,9 +65,11 @@ namespace TianCheng.BaseService.PlugIn.Swagger
             {
                 if (_OrderDict == null)
                 {
-                    _OrderDict = new Dictionary<string, string>();
-                    _OrderDict.Add("00", "AuthController");
-                    _OrderDict.Add("zz", "TianCheng.SystemCommon");
+                    _OrderDict = new Dictionary<string, string>
+                    {
+                        { "00", "AuthController" },
+                        { "zz", "TianCheng.SystemCommon" }
+                    };
                 }
                 return _OrderDict;
             }

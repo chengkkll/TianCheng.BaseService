@@ -132,8 +132,10 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
                         }
                     case ApiMethodType.PATCH:
                         {
-                            HttpRequestMessage requestMessage = new HttpRequestMessage();
-                            requestMessage.Method = new HttpMethod("PATCH");
+                            HttpRequestMessage requestMessage = new HttpRequestMessage
+                            {
+                                Method = new HttpMethod("PATCH")
+                            };
                             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                             requestMessage.RequestUri = new Uri(apiUrl);
                             response = await httpClient.SendAsync(requestMessage);
@@ -141,9 +143,11 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
                         }
                     case ApiMethodType.OPTIONS:
                         {
-                            HttpRequestMessage requestMessage = new HttpRequestMessage();
-                            requestMessage.Method = HttpMethod.Options;
-                            requestMessage.Content = content;
+                            HttpRequestMessage requestMessage = new HttpRequestMessage
+                            {
+                                Method = HttpMethod.Options,
+                                Content = content
+                            };
                             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                             requestMessage.RequestUri = new Uri(apiUrl);
                             response = await httpClient.SendAsync(requestMessage);

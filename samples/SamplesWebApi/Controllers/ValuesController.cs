@@ -16,29 +16,24 @@ namespace SamplesWebApi.Controllers
     public class ValuesController : Controller
     {
         private readonly ILogger<ValuesController> _logger;
-        protected HttpContext _Context;
         /// <summary>
         /// 
         /// </summary>
         /// <param name="logger"></param>
-        public ValuesController(ILogger<ValuesController> logger, IServiceProvider servicesProvider)
+        public ValuesController(ILogger<ValuesController> logger)
         {
             _logger = logger;
-
-
-            var provider = servicesProvider;
-
-            object factory = servicesProvider.GetService(typeof(Microsoft.AspNetCore.Http.IHttpContextAccessor));
-            _Context = ((Microsoft.AspNetCore.Http.HttpContextAccessor)factory).HttpContext;
         }
+
+
         /// <summary>
         ///  GET api/values
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<string> Get([FromServices]IHttpContextAccessor httpContext)
         {
-            _Context.Response.StatusCode = 204;
+            httpContext.HttpContext.Response.StatusCode = 204;
             return new string[] { "value1", "value2" };
         }
 

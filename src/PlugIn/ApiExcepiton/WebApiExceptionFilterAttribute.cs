@@ -58,45 +58,6 @@ namespace TiangCheng.BaseService.PlugIn.ApiExcepiton
                 context.Result = new JsonResult(new { code = 500, message = context.Exception.Message });
                 base.OnException(context);
             }
-            //else if (actionExecutedContext.Exception is BadRequestParameterException)
-            //{
-            //    var mResponse = new HttpResponseMessage(HttpStatusCode.BadRequest);
-            //    string msg = actionExecutedContext.Exception.Message;
-            //    mResponse.Content = new StringContent("{\"code\": 400 ,\"message\": \"" + msg + "\" }");
-            //    mResponse.ReasonPhrase = "bad request";
-
-            //    actionExecutedContext.Response = mResponse;
-            //}
-            //else if (actionExecutedContext.Exception is TianChengException)
-            //{
-            //    TianChengException te = actionExecutedContext.Exception as TianChengException;
-            //    int code = te.Code;
-            //    string msg = te.Message;
-            //    var mResponse = new HttpResponseMessage(HttpStatusCode.Forbidden);
-            //    mResponse.Content = new StringContent("{\"code\": " + code + " ,\"message\": \"" + msg + "\" }");
-            //    mResponse.ReasonPhrase = "tc exception";
-
-            //    actionExecutedContext.Response = mResponse;
-            //}
-            //else if (actionExecutedContext.Exception is RecordOperateException)
-            //{
-            //    var mResponse = new HttpResponseMessage(HttpStatusCode.BadRequest);
-            //    string msg = actionExecutedContext.Exception.Message;
-            //    mResponse.Content = new StringContent("{ \"code\": 400 ,\"message\": \"" + msg + "\" }");
-            //    mResponse.Content.Headers.ContentType.MediaType = "application/json;utf-8";
-            //    mResponse.ReasonPhrase = "bad request";
-
-            //    actionExecutedContext.Response = mResponse;
-            //}
-            //.....这里可以根据项目需要返回到客户端特定的状态码。如果找不到相应的异常，统一返回服务端错误500
-            //else
-            //{
-            //    context.Response = new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            //}
-            // TODO: Pass additional detailed data via ViewData
-            //context.Result = result;
-
-
         }
     }
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using TianCheng.BaseService.PlugIn;
 using System.Linq;
+using TianCheng.BaseService.Services;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -21,9 +22,14 @@ namespace Microsoft.AspNetCore.Builder
         /// <param name="configuration"></param>
         static public void TianChengInit(this IApplicationBuilder app, IConfiguration configuration)
         {
+            // ServiceLoader.Instance = app.ApplicationServices;
+            TianCheng.DAL.Interface.Appsettings.Instance = app.ApplicationServices;
+            TianCheng.DAL.Interface.Appsettings.Configuration = configuration;
+            TianCheng.Model.ServiceLoader.Instance = app.ApplicationServices;
+
             //跨域处理
             app.UseCors("AllowAnyDomain");
-            
+
             //auth 登录权限控制
             app.AuthConfigure();
 
@@ -36,7 +42,7 @@ namespace Microsoft.AspNetCore.Builder
             // Swagger
             app.UseSwaggerUI();
 
- 
+
         }
     }
 }

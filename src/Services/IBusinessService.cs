@@ -10,8 +10,10 @@ namespace TianCheng.BaseService
     /// <summary>
     /// 数据增删改查的通用接口
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public interface IInfoService<T> : IServiceRegister
+    /// <typeparam name="T">操作的对象类型</typeparam>
+    /// <typeparam name="IdType">对象的ID类型</typeparam>
+    public interface IBusinessService<T, IdType> : IServiceRegister
+        where T : IBusinessModel<IdType>
     {
         /// <summary>
         /// 根据id查询对象信息  如果无查询结果会抛出异常

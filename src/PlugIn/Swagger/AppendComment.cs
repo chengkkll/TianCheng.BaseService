@@ -63,13 +63,14 @@ namespace TianCheng.BaseService.PlugIn.Swagger
                     {
                         Description = "找不到要操作的数据，找不到要操作的数据。{ code:\"404\",message:\"要操作的数据ID\" }"
                     };
-                    IDictionary<string, Response> result = new Dictionary<string, Response>();
-                    result.Add("400", r400);
-                    result.Add("401", r401);
-                    result.Add("403", r403);
-                    result.Add("404", r404);
 
-                    _CommonResponse = result;
+                    _CommonResponse = new Dictionary<string, Response>
+                    {
+                        {"400",r400 },
+                        {"401",r401 },
+                        {"403",r403 },
+                        {"404",r404 },
+                    };
                 }
                 return _CommonResponse;
             }

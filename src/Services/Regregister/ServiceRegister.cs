@@ -28,9 +28,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
             // 注册数据库操作
-            foreach (var type in TianCheng.Model.AssemblyHelper.GetTypeByInterfaceName("IDBOperation`1"))
+            foreach (var type in TianCheng.Model.AssemblyHelper.GetTypeByInterfaceName("IDBOperation"))
             {
-                services.AddTransient(type);
+                if (!type.IsInterface)
+                    services.AddTransient(type);
             }
 
         }

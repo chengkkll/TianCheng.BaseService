@@ -3,28 +3,114 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using TianCheng.BaseService.Services;
+using TianCheng.DAL;
 using TianCheng.DAL.MongoDB;
+using TianCheng.DAL.Redis;
 using TianCheng.Model;
 
 namespace TianCheng.BaseService
 {
     /// <summary>
-    /// 通用基本服务
+    /// 
     /// </summary>
-    public class BusinessService<T, V, Q> : IInfoService<T>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="Q"></typeparam>
+    public class MongoBusinessService<T, V, Q> : BusinessService<T, V, Q, MongoDB.Bson.ObjectId>
         where T : BusinessMongoModel, new()
         where Q : QueryInfo
     {
-        #region 构造方法
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        /// <param name="dal"></param>
+        public MongoBusinessService(MongoOperation<T> dal) : base(dal)
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dal"></param>
+        /// <param name="logger"></param>
+        /// <param name="servicesProvider"></param>
+        public MongoBusinessService(MongoOperation<T> dal,
+            ILogger<BusinessService<T, V, Q, MongoDB.Bson.ObjectId>> logger,
+            IServiceProvider servicesProvider) : base(dal, logger, servicesProvider)
+        {
+
+        }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="Q"></typeparam>
+    public class IntBusinessService<T, V, Q> : BusinessService<T, V, Q, int>
+        where T : BusinessIntModel, new()
+        where Q : QueryInfo
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dal"></param>
+        /// <param name="logger"></param>
+        /// <param name="servicesProvider"></param>
+        public IntBusinessService(DAL.IDBOperation<T, int> dal,
+            ILogger<BusinessService<T, V, Q, int>> logger,
+            IServiceProvider servicesProvider)
+            : base(dal, logger, servicesProvider)
+        {
+
+        }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="V"></typeparam>
+    /// <typeparam name="Q"></typeparam>
+    public class GuidBusinessService<T, V, Q> : BusinessService<T, V, Q, string>
+        where T : BusinessGuidModel, new()
+        where Q : QueryInfo
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dal"></param>
+        /// <param name="logger"></param>
+        /// <param name="servicesProvider"></param>
+        public GuidBusinessService(DAL.IDBOperation<T, string> dal,
+            ILogger<BusinessService<T, V, Q, string>> logger,
+            IServiceProvider servicesProvider)
+            : base(dal, logger, servicesProvider)
+        {
+
+        }
+    }
+
+    /// <summary>
+    /// 通用基本服务
+    /// </summary>
+    public class BusinessService<T, V, Q, IdType> : IBusinessService<T, IdType>
+        where T : IBusinessModel<IdType>, new()
+        where Q : QueryInfo
+
+    {
+        #region 构造方法        
         /// <summary>
         /// 数据操作对象
         /// </summary>
-        protected MongoOperation<T> _Dal;
+        protected IDBOperation<T, IdType> _Dal;
         /// <summary>
         /// 具体业务日志工具
         /// </summary>
-        protected readonly ILogger<BusinessService<T, V, Q>> _logger;
+        protected readonly ILogger<BusinessService<T, V, Q, IdType>> _logger;
         /// <summary>
         /// 
         /// </summary>
@@ -41,13 +127,22 @@ namespace TianCheng.BaseService
                 if (_context == null)
                 {
                     object factory = _ServicesProvider.GetService(typeof(Microsoft.AspNetCore.Http.IHttpContextAccessor));
-                    _context = ((Microsoft.AspNetCore.Http.HttpContextAccessor)factory).HttpContext;                    
+                    _context = ((Microsoft.AspNetCore.Http.HttpContextAccessor)factory).HttpContext;
                 }
                 return _context;
             }
         }
 
-
+        /// <summary>
+        /// 构造方法
+        /// </summary>
+        /// <param name="dal"></param>
+        public BusinessService(IDBOperation<T, IdType> dal)
+        {
+            _Dal = dal;
+            _logger = ServiceLoader.GetService<ILogger<BusinessService<T, V, Q, IdType>>>();
+            _ServicesProvider = ServiceLoader.Instance;
+        }
 
         /// <summary>
         /// 构造方法
@@ -55,7 +150,7 @@ namespace TianCheng.BaseService
         /// <param name="dal"></param>
         /// <param name="logger"></param>
         /// <param name="servicesProvider"></param>
-        public BusinessService(MongoOperation<T> dal, ILogger<BusinessService<T, V, Q>> logger, IServiceProvider servicesProvider)
+        public BusinessService(IDBOperation<T, IdType> dal, ILogger<BusinessService<T, V, Q, IdType>> logger, IServiceProvider servicesProvider)
         {
             _Dal = dal;
             _logger = logger;
@@ -63,15 +158,46 @@ namespace TianCheng.BaseService
         }
         #endregion
 
+        #region 缓存操作
+        /// <summary>
+        /// 是否启用缓存
+        /// </summary>
+        protected virtual bool EnableCache { get; } = false;
+
+        /// <summary>
+        /// 是否可用Redis缓存
+        /// </summary>
+        protected bool HasRedisCache
+        {
+            get { return EnableCache && RedisConnection.HasRedis; }
+        }
+        /// <summary>
+        /// 操作Redis的服务
+        /// </summary>
+        RedisHashOperation<T> RedisCache = new RedisHashOperation<T>();
+
+        /// <summary>
+        /// 重置本对象的Redis缓存
+        /// </summary>
+        public void ResetRedisCache()
+        {
+            // 异步完善缓存信息
+            ThreadPool.QueueUserWorkItem(h =>
+            {
+                RedisCache.Init(_Dal.Queryable().ToList(), e => e.Id.ToString());
+            });
+        }
+        #endregion
+
         #region 获取一个操作实例
         /// <summary>
         /// 
         /// </summary>
-        static private BusinessService<T, V, Q> _Service = null;
+        static private BusinessService<T, V, Q, IdType> _Service = null;
         /// <summary>
         /// 
         /// </summary>
-        static public BusinessService<T, V, Q> Service
+        static public BusinessService<T, V, Q, IdType> Service
         {
             get { return _Service; }
         }
@@ -100,22 +226,64 @@ namespace TianCheng.BaseService
         /// </summary>
         static public Action<V> OnSearchViewById;
         #endregion
+
+        /// <summary>
+        /// 根据ID列表获取对象集合
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public List<T> _SearchByIds(IEnumerable<string> ids)
+        {
+            return _Dal.SearchByIds(ids);
+        }
+
         /// <summary>
         /// 根据id查询对象信息  如果无查询结果会抛出异常
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public T _SearchById(string id)
+        public virtual T _SearchById(string id)
+        {
+            T info = new T();
+            // 判断是否通过缓存读取数据
+            if (HasRedisCache)
+            {
+                info = RedisCache.GetValue(id);
+                if (info != null)
+                {
+                    return info;
+                }
+            }
+            // 将传入ID转成对象处理
+            T t = new T();
+            t.SetId(id);
+            // 从数据库中获取对象
+            info = _SearchById(t.Id);
+            // 将获取到的对象放入Redis中
+            if (info != null && EnableCache && RedisConnection.HasRedis)
+            {
+                RedisCache.SetValue(id, info);
+            }
+            // 返回查询结果对象
+            return info;
+        }
+
+        /// <summary>
+        /// 根据id查询对象信息  如果无查询结果会抛出异常
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public T _SearchById(IdType id)
         {
             _logger.LogTrace($"根据ID查询对象（_SearchById），对象类型为：[{typeof(T).FullName}]");
-            // 必须输入ID
-            if (String.IsNullOrWhiteSpace(id))
+            // 检查ID是否有效
+            if (!new T().CheckId(id))
             {
-                _logger.LogWarning($"按ID查询对象时，ID不能为空。类型为：[{typeof(T).FullName}]");
-                throw ApiException.BadRequest("请求的id不能为空。");
+                _logger.LogWarning($"按ID查询对象时，ID无效。类型为：[{typeof(T).FullName}][id={id}]");
+                throw ApiException.BadRequest("请求的id无效。");
             }
             // 根据ID获取信息
-            var info = _Dal.SearchById(id);
+            var info = _Dal.SearchByTypeId(id);
             _logger.LogTrace($"根据ID查询对象，已获取对象。类型为：[{typeof(T).FullName}]\r\n对象值：[{info.ToJson()}]");
             // 查询到Info对象后的事件处理
             OnSearchInfoById?.Invoke(info);
@@ -130,7 +298,7 @@ namespace TianCheng.BaseService
         public virtual V SearchById(string id)
         {
             _logger.LogTrace($"根据ID查询对象（SearchById），对象类型为：[{typeof(V).FullName}]");
-            //根据ID获取员工信息
+            //根据ID获取对象信息
             var info = _SearchById(id);
             // 如果查询不到数据，抛出404异常
             if (info == null)
@@ -150,6 +318,23 @@ namespace TianCheng.BaseService
         #endregion
 
         #region 无条件查询所有
+        /// <summary>
+        /// 获取所有缓存中的数据
+        /// </summary>
+        /// <returns></returns>
+        public IQueryable<T> RedisCacheQuery()
+        {
+            // 如果缓存的数据与数据库的数量不符
+            if (_Dal.Queryable().Count() != RedisCache.Count())
+            {
+                // 异步完善缓存信息
+                ResetRedisCache();
+                // 先返回数据库链式查询条件
+                return _Dal.Queryable();
+            }
+
+            return RedisCache.GetAllData().AsQueryable();
+        }
         /// <summary>
         /// 无条件查询所有
         /// </summary>
@@ -312,10 +497,10 @@ namespace TianCheng.BaseService
             PagedResultPagination pagination = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, pagination);
             var infoList = queryResult.ToList();
-            if (infoList.Count == 0)
-            {
-                _Context.Response.StatusCode = 204;
-            }
+            //if (infoList.Count == 0)
+            //{
+            //    _Context.Response.StatusCode = 204;
+            //}
             var viewList = AutoMapper.Mapper.Map<List<OV>>(infoList);
             return new PagedResult<OV>(viewList, pagination);
         }
@@ -330,10 +515,10 @@ namespace TianCheng.BaseService
             PagedResultPagination pagination = new PagedResultPagination();
             queryResult = SetFilterPagination(input, queryResult, pagination);
             var infoList = queryResult.ToList();
-            if (infoList.Count == 0)
-            {
-                _Context.Response.StatusCode = 204;
-            }
+            //if (infoList.Count == 0)
+            //{
+            //    _Context.Response.StatusCode = 204;
+            //}
             return new PagedResult<T>(infoList, pagination);
         }
         #endregion
@@ -423,6 +608,19 @@ namespace TianCheng.BaseService
         /// 物理删除后的事件处理
         /// </summary>
         static public Action<T, TokenLogonInfo> OnRemoved;
+
+        /// <summary>
+        /// 逻辑删除的 删除前检测
+        /// </summary>
+        static public Action<T, TokenLogonInfo> OnDeleteCheck;
+        /// <summary>
+        /// 物理删除的 删除前检测
+        /// </summary>
+        static public Action<T, TokenLogonInfo> OnRemoveCheck;
+        /// <summary>
+        /// 逻辑与物理删除的 删除前检测
+        /// </summary>
+        static public Action<T, TokenLogonInfo> OnDeleteRemoveCheck;
         #endregion
 
         #region 派生类中可重写的方法
@@ -452,6 +650,39 @@ namespace TianCheng.BaseService
         }
 
         /// <summary>
+        /// 删除的通用前置处理
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="logonInfo"></param>
+        protected virtual void DeleteRemoving(T info, TokenLogonInfo logonInfo)
+        {
+        }
+        /// <summary>
+        /// 逻辑删除的前置处理
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="logonInfo"></param>
+        protected virtual void Deleting(T info, TokenLogonInfo logonInfo)
+        {
+        }
+        /// <summary>
+        /// 取消逻辑删除的前置处理
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="logonInfo"></param>
+        protected virtual void UnDeleting(T info, TokenLogonInfo logonInfo)
+        {
+        }
+        /// <summary>
+        /// 物理删除的前置处理
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="logonInfo"></param>
+        protected virtual void Removing(T info, TokenLogonInfo logonInfo)
+        {
+        }
+
+        /// <summary>
         /// 逻辑删除的后置操作
         /// </summary>
         /// <param name="info"></param>
@@ -469,19 +700,37 @@ namespace TianCheng.BaseService
         /// <param name="info"></param>
         /// <param name="logonInfo">登录的用户信息</param>
         protected virtual void Removed(T info, TokenLogonInfo logonInfo) { }
+        /// <summary>
+        /// 删除的通用后置处理
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="logonInfo"></param>
+        protected virtual void DeleteRemoved(T info, TokenLogonInfo logonInfo)
+        {
+        }
         #endregion
 
         #region 逻辑删除
         /// <summary>
         /// 逻辑删除
         /// </summary>
-        /// <param name="id">要删除的数据id</param>
-        /// <param name="logonInfo">登录的用户信息</param>
+        /// <param name="id"></param>
+        /// <param name="logonInfo"></param>
         /// <returns></returns>
         public ResultView Delete(string id, TokenLogonInfo logonInfo)
         {
+            return Delete(_SearchById(id), logonInfo);
+        }
+        /// <summary>
+        /// 逻辑删除
+        /// </summary>
+        /// <param name="id">要删除的数据id</param>
+        /// <param name="logonInfo">登录的用户信息</param>
+        /// <returns></returns>
+        public ResultView DeleteById(IdType id, TokenLogonInfo logonInfo)
+        {
             // 为了做删除的前后置操作，所以先获取要删除的数据，再做删除处理
-            return Remove(_SearchById(id), logonInfo);
+            return Delete(_SearchById(id), logonInfo);
         }
         /// <summary>
         /// 逻辑删除
@@ -501,7 +750,12 @@ namespace TianCheng.BaseService
             {
                 // 判断对应数据是否可以删除.
                 DeleteRemoveCheck(info);
+                OnDeleteRemoveCheck?.Invoke(info, logonInfo);
                 DeleteCheck(info);
+                OnDeleteCheck?.Invoke(info, logonInfo);
+                // 逻辑删除的前置操作
+                DeleteRemoving(info, logonInfo);
+                Deleting(info, logonInfo);
                 // 逻辑删除前置事件处理
                 OnDeleting?.Invoke(info, logonInfo);
                 // 设置逻辑删除状态
@@ -511,9 +765,10 @@ namespace TianCheng.BaseService
                 info.IsDelete = true;
 
                 // 持久化数据
-                _Dal.Update(info);
+                _Dal.UpdateObject(info);
                 // 逻辑删除的后置处理
                 Deleted(info, logonInfo);
+                DeleteRemoved(info, logonInfo);
                 // 逻辑删除后置事件处理
                 OnDeleted?.Invoke(info, logonInfo);
                 // 返回保存结果
@@ -531,10 +786,20 @@ namespace TianCheng.BaseService
         /// <summary>
         /// 物理删除
         /// </summary>
+        /// <param name="id"></param>
+        /// <param name="logonInfo"></param>
+        /// <returns></returns>
+        public ResultView Remove(string id, TokenLogonInfo logonInfo)
+        {
+            return Remove(_SearchById(id), logonInfo);
+        }
+        /// <summary>
+        /// 物理删除
+        /// </summary>
         /// <param name="id">要删除的数据id</param>
         /// <param name="logonInfo">登录的用户信息</param>
         /// <returns></returns>
-        public ResultView Remove(string id, TokenLogonInfo logonInfo)
+        public ResultView RemoveById(IdType id, TokenLogonInfo logonInfo)
         {
             // 为了做删除的前后置操作，所以先获取要删除的数据，再做删除处理
             return Remove(_SearchById(id), logonInfo);
@@ -557,13 +822,19 @@ namespace TianCheng.BaseService
             {
                 // 判断对应数据是否可以删除.
                 DeleteRemoveCheck(info);
+                OnDeleteRemoveCheck?.Invoke(info, logonInfo);
                 RemoveCheck(info);
+                OnRemoveCheck?.Invoke(info, logonInfo);
+                // 物理删除的前置操作
+                DeleteRemoving(info, logonInfo);
+                Removing(info, logonInfo);
                 // 物理删除时的前置事件处理
                 OnRemoving?.Invoke(info, logonInfo);
                 // 持久化数据
-                _Dal.Remove(info);
+                _Dal.RemoveObject(info);
                 // 物理删除的后置处理
                 Removed(info, logonInfo);
+                DeleteRemoved(info, logonInfo);
                 // 物理删除时的后置事件处理
                 OnRemoved?.Invoke(info, logonInfo);
                 // 返回保存结果
@@ -579,15 +850,25 @@ namespace TianCheng.BaseService
 
         #region 还原删除
         /// <summary>
-        /// 
+        /// 取消逻辑删除
         /// </summary>
         /// <param name="id"></param>
         /// <param name="logonInfo"></param>
         /// <returns></returns>
-        public virtual ResultView UnDelete(string id, TokenLogonInfo logonInfo)
+        public ResultView UnDelete(string id, TokenLogonInfo logonInfo)
+        {
+            return UnDelete(_SearchById(id), logonInfo);
+        }
+        /// <summary>
+        /// 取消逻辑删除
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="logonInfo"></param>
+        /// <returns></returns>
+        public virtual ResultView UnDeleteById(IdType id, TokenLogonInfo logonInfo)
         {
             // 为了做还原删除的前后置操作，所以先获取要还原的数据，再做还原处理
-            return Remove(_SearchById(id), logonInfo);
+            return UnDelete(_SearchById(id), logonInfo);
         }
         /// <summary>
         /// 取消逻辑删除
@@ -606,6 +887,8 @@ namespace TianCheng.BaseService
             _logger.LogTrace($"还原删除数据 ==> 类型为：[{typeof(T).FullName}]\t还原ID为：[{id}]");
             try
             {
+                // 取消逻辑删除的前置操作
+                UnDeleting(info, logonInfo);
                 // 取消逻辑删除的前置事件处理
                 OnUnDeleting?.Invoke(info, logonInfo);
                 // 取消删除状态
@@ -615,7 +898,7 @@ namespace TianCheng.BaseService
                 info.IsDelete = false;
 
                 // 持久化数据
-                _Dal.Update(info);
+                _Dal.UpdateObject(info);
                 // 还原的后置操作
                 UnDeleted(info, logonInfo);
                 // 取消还原删除的后置事件处理
@@ -805,7 +1088,7 @@ namespace TianCheng.BaseService
                 #endregion
 
                 // 持久化数据
-                _Dal.Insert(info);
+                _Dal.InsertObject(info);
 
                 #region 保存后置处理
                 // 新增的通用后置操作，可以被重写
@@ -818,7 +1101,7 @@ namespace TianCheng.BaseService
                 #endregion
 
                 // 返回保存结果
-                return ResultView.Success(info.Id);
+                return ResultView.Success(info.IdString);
             }
             catch (Exception ex)
             {
@@ -857,7 +1140,7 @@ namespace TianCheng.BaseService
             try
             {
                 // 根据ID获取原数据信息
-                var old = _SearchById(info.Id.ToString());
+                var old = _SearchById(info.Id);
                 // 更新数据前的预制数据
                 info.CreateDate = old.CreateDate;
                 info.CreaterId = old.CreaterId;
@@ -891,7 +1174,7 @@ namespace TianCheng.BaseService
                 #endregion
 
                 // 持久化数据
-                _Dal.Update(info);
+                _Dal.UpdateObject(info);
 
                 #region 保存后置处理
                 // 更新的后置操作，可以被重写
@@ -904,7 +1187,7 @@ namespace TianCheng.BaseService
                 #endregion
 
                 // 返回保存结果
-                return ResultView.Success(info.Id);
+                return ResultView.Success(info.IdString);
             }
             catch (Exception ex)
             {
@@ -921,7 +1204,7 @@ namespace TianCheng.BaseService
         /// <param name="id">审核对象ID</param>
         /// <param name="logonInfo">登录人信息</param>
         /// <param name="state">审核状态</param>
-        public ResultView Review(string id, TokenLogonInfo logonInfo, ProcessState state = ProcessState.Review)
+        public ResultView Review(IdType id, TokenLogonInfo logonInfo, ProcessState state = ProcessState.Review)
         {
             var info = _SearchById(id);
             info.ReleaseDate = DateTime.Now;
@@ -929,8 +1212,8 @@ namespace TianCheng.BaseService
             info.UpdaterId = logonInfo.Id;
             info.UpdaterName = logonInfo.Name;
             info.ProcessState = state;
-            _Dal.Update(info);
-            return ResultView.Success(info.Id);
+            _Dal.UpdateObject(info);
+            return ResultView.Success(info.IdString);
         }
 
         /// <summary>
@@ -939,7 +1222,7 @@ namespace TianCheng.BaseService
         /// <param name="id">审核对象ID</param>
         /// <param name="logonInfo">登录人信息</param>
         /// <param name="state">审核拒绝状态</param>
-        public ResultView ReviewDisagreed(string id, TokenLogonInfo logonInfo, ProcessState state = ProcessState.Apply)
+        public ResultView ReviewDisagreed(IdType id, TokenLogonInfo logonInfo, ProcessState state = ProcessState.Apply)
         {
             var info = _SearchById(id);
             info.ReleaseDate = DateTime.Now;
@@ -947,8 +1230,8 @@ namespace TianCheng.BaseService
             info.UpdaterId = logonInfo.Id;
             info.UpdaterName = logonInfo.Name;
             info.ProcessState = state;
-            _Dal.Update(info);
-            return ResultView.Success(info.Id);
+            _Dal.UpdateObject(info);
+            return ResultView.Success(info.IdString);
         }
 
 
