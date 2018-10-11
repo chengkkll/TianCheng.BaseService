@@ -14,7 +14,7 @@ namespace TianCheng.BaseService
     public class ImportBaseController : DataController
     {
         #region 保存一个上传的文件信息
-        private long _MaxFileSize = 104857600;  //100M
+        private readonly long _MaxFileSize = 104857600;  //100M
         /// <summary>
         /// 允许文件最大上传的尺寸
         /// </summary>

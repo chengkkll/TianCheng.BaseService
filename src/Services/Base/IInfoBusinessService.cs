@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using TianCheng.Model;
 
-namespace TianCheng.BaseService.Services
+namespace TianCheng.BaseService
 {
     /// <summary>
     /// 
