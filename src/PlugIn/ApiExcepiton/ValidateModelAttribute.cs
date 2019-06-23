@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TiangCheng.BaseService.PlugIn.ApiExcepiton
 {
     /// <summary>
-    /// 验证实体的特性
+    /// 根据实体的特性进行验证
     /// </summary>
     public class ValidateModelAttribute : ActionFilterAttribute
     {
@@ -22,6 +19,5 @@ namespace TiangCheng.BaseService.PlugIn.ApiExcepiton
                 context.Result = new BadRequestObjectResult(context.ModelState);
             }
         }
-
     }
 }

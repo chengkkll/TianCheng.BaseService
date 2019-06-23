@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using TianCheng.BaseService;
+﻿using System.Linq;
 using TianCheng.Model;
 
 namespace TianCheng.BaseService

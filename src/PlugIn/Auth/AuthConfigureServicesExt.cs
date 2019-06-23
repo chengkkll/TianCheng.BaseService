@@ -1,14 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using TianCheng.BaseService.PlugIn;
 
@@ -79,8 +74,13 @@ namespace Microsoft.Extensions.DependencyInjection
                         {
                             ClaimsIdentity identity = context.Principal.Identity as ClaimsIdentity;
 
-                            var authService = context.Request.HttpContext.RequestServices.GetService<IAuthService>();
-                            authService.FillFunctionPolicy(identity);
+                            string typeName = identity.Claims.Where(e => e.Type == "type").Select(e => e.Value).FirstOrDefault();
+                            if (!string.IsNullOrWhiteSpace(typeName))
+                            {
+                                //var authService = context.Request.HttpContext.RequestServices.GetService<IAuthService>();
+                                var authService = TianCheng.Model.ServiceLoader.GetService(typeName) as IAuthService;
+                                authService.FillFunctionPolicy(identity);
+                            }
                         }
 
                         return Task.FromResult(0);

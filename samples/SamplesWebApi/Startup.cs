@@ -35,8 +35,7 @@ namespace SamplesWebApi
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.TianChengInit(Configuration);
-
+            services.TianChengBaseServicesInit(Configuration);
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace SamplesWebApi
             //{
             //    app.UseDeveloperExceptionPage();
             //}
-            app.TianChengInit(Configuration);
+            app.TianChengBaseServicesInit(Configuration);
         }
     }
 }

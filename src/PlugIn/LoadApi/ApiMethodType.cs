@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TianCheng.BaseService.PlugIn.LoadApi
+﻿namespace TianCheng.BaseService
 {
     /// <summary>
     /// 请求方式
     /// </summary>
-    public enum ApiMethodType
+    internal enum ApiMethodType
     {
         /// <summary>
         /// GET

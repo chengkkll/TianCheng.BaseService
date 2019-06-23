@@ -1,51 +1,46 @@
 ﻿using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace TianCheng.BaseService.PlugIn.Swagger
 {
     /// <summary>
-    /// 登录Token参数设置
+    /// 权限接口说明设置
     /// </summary>
     public class AuthorizationParameterFilter : IOperationFilter
     {
+        private static readonly Response R401 = new Response() { Description = "Token值错误，需要重新登陆。" };
+        private static readonly Response R403 = new Response() { Description = "没有权限调用本接口。" };
+
         /// <summary>
-        /// 
+        /// 权限接口说明设置
         /// </summary>
         /// <param name="operation"></param>
-        /// <param name="context"></param>
+        /// <param name="context">接口的上下文信息</param>
         public void Apply(Operation operation, OperationFilterContext context)
         {
             if (operation.Parameters == null)
                 operation.Parameters = new List<IParameter>();
-
-            foreach (var attr in context.ApiDescription.ActionAttributes())
+            // 只查询需要权限的接口
+            var authAttrList = context.MethodInfo.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true);
+            if (authAttrList != null && authAttrList.Count() > 0)
             {
-                // 如果方法中有权限验证的特性。
-                if (attr.GetType() != typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute))
+                if (!(authAttrList.FirstOrDefault() is Microsoft.AspNetCore.Authorization.AuthorizeAttribute authAttr))
                 {
-                    continue;
+                    return;
                 }
-                Microsoft.AspNetCore.Authorization.AuthorizeAttribute upload = (Microsoft.AspNetCore.Authorization.AuthorizeAttribute)attr;
-                if (upload == null)
+                // 设置接口说明
+                operation.Description += $"\r\n权限名：\r\n\t{authAttr.Policy}\r\n";
+                // 设置接口返回值说明
+                if (operation.Responses.Keys.Contains("401"))
                 {
-                    upload = new Microsoft.AspNetCore.Authorization.AuthorizeAttribute();
+                    operation.Responses["401"] = R401;
                 }
-                operation.Parameters.Add(new NonBodyParameter()
+                if (operation.Responses.Keys.Contains("403"))
                 {
-                    Name = "Authorization",
-                    @In = "header",
-                    Description = $"JWT的Token验证\r\n\t【需要Bearer token的形式。\r\n\tBearer与Token之间需一个空格连接】",
-                    Required = false,
-                    Type = "string",
-                });
-                operation.Summary += "[Auth]";
-                operation.Description = operation.Description + $"\r\n#####权限名称：\r\n\t{upload.Policy}\r\n";
-
-
+                    operation.Responses["403"] = R403;
+                }
             }
         }
     }

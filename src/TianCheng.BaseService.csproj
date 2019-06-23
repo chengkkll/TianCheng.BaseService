@@ -1,48 +1,49 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.1.0.7-preview</Version>
-    <Authors>KKLL</Authors>
-    <Company>TianCheng</Company>
-    <AssemblyVersion>1.1.0.7</AssemblyVersion>
-    <FileVersion>1.1.0.7</FileVersion>
-    <Description>常用逻辑的业务处理，及实现通用业务的封装</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.0.0</Version>
+    <Authors>成善斌</Authors>
+    <Company>天成科技</Company>
+    <Product>天成科技通用业务处理类库</Product>
+    <RepositoryType>github</RepositoryType>
+    <PackageIconUrl>https://raw.githubusercontent.com/chengkkll/resources/master/Logo64.ico</PackageIconUrl>
+    <PackageReleaseNotes>设置目标架构为：.NET Standard 2.0</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/chengkkll/TianCheng.BaseService</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/chengkkll/TianCheng.BaseService.git</RepositoryUrl>
+    <Description>业务处理通用的方法。
+包括：Jwt的登录控制、其它接口的调用封装、文件上传处理、Swagger、通用业务封装</Description>
+    <PackageTags>Jwt、Swagger、BusinessService</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp1.1\TianCheng.BaseService.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netstandard2.0\TianCheng.BaseService.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="CommonControllers\**" />
-    <Compile Remove="PlugIn\Auth\JwtToken\**" />
-    <EmbeddedResource Remove="CommonControllers\**" />
-    <EmbeddedResource Remove="PlugIn\Auth\JwtToken\**" />
-    <None Remove="CommonControllers\**" />
-    <None Remove="PlugIn\Auth\JwtToken\**" />
+    <Compile Remove="PlugIn\Crypt\**" />
+    <EmbeddedResource Remove="PlugIn\Crypt\**" />
+    <None Remove="PlugIn\Crypt\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Class1.cs" />
-    <Compile Remove="PlugIn\Auth\AuthConfigure.cs" />
+    <Compile Remove="Controller\ImportBaseController.cs" />
+    <Compile Remove="PlugIn\Swagger\SwaggerCustomFileProvider.cs" />
+    <Compile Remove="PlugIn\Swagger\SwaggerDecryptFilter.cs" />
+    <Compile Remove="Services\Regregister\IServiceRegister.cs" />
+    <Compile Remove="Services\Regregister\ServiceRegister.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="PlugIn\Auth\JwtToken\Jwt.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.1.3" />
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
-    <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0-dev-00023" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="1.1.0" />
-    <PackageReference Include="TianCheng.DAL.Interface" Version="1.0.0" />
-    <PackageReference Include="TianCheng.DAL.MongoDB" Version="1.2.0" />
-    <PackageReference Include="TianCheng.DAL.Redis" Version="1.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="1.1.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Filters" Version="4.5.5" />
+    <PackageReference Include="TianCheng.DAL.MongoDB" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

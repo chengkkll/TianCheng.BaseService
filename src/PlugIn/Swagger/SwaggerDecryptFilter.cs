@@ -1,7 +1,7 @@
 ﻿using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using TianCheng.BaseService.PlugIn.Crypt;
 
 namespace TianCheng.BaseService.PlugIn.Swagger
@@ -21,15 +21,14 @@ namespace TianCheng.BaseService.PlugIn.Swagger
             if (operation.Parameters == null)
                 operation.Parameters = new List<IParameter>();
 
-            foreach (var attr in context.ApiDescription.ActionAttributes())
+            var attrList = context.MethodInfo.GetCustomAttributes(typeof(DecryptBodyAttribute), true);
+            if (attrList != null && attrList.Count() > 0)
             {
-                // 如果方法中有加密特性。
-                if (attr.GetType() != typeof(DecryptBodyAttribute))
+                if (!(attrList.FirstOrDefault() is DecryptBodyAttribute))
                 {
-                    continue;
+                    return;
                 }
-
-                // 增加加密属性
+                // 设置加密接口参数
                 operation.Parameters.Clear();
                 operation.Parameters.Add(new BodyParameter()
                 {
@@ -39,7 +38,6 @@ namespace TianCheng.BaseService.PlugIn.Swagger
                     Required = true,
                     Schema = new Schema { Type = "string" }
                 });
-
             }
         }
     }

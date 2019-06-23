@@ -1,16 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using System.IO;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 
 namespace TianCheng.BaseService.PlugIn
 {
@@ -63,7 +51,7 @@ namespace TianCheng.BaseService.PlugIn
 
             //app.UseAuthentication(new TokenProviderOptions
             //{
-                
+
             //    Audience = conf.Audience,// audienceConfig["Audience"],
             //    Issuer = conf.Issuer,// audienceConfig["Issuer"],
             //    //SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)

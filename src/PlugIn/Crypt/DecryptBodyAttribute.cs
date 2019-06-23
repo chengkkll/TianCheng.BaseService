@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -27,8 +26,7 @@ namespace TianCheng.BaseService.PlugIn.Crypt
                 body = RSAHelper.RSADecrypt(CryptConfig.RSA_PRIVATE_KEY, body);
                 // 3、将解密后的数据写回Body中
                 byte[] requestData = Encoding.UTF8.GetBytes(body);
-                context.HttpContext.Request.Body = new MemoryStream(requestData);
-                context.HttpContext.Request.Body.Position = 0;
+                context.HttpContext.Request.Body = new MemoryStream(requestData) { Position = 0 };
             }
         }
         /// <summary>

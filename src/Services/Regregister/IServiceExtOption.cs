@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TianCheng.BaseService
+﻿namespace TianCheng.BaseService
 {
     /// <summary>
     /// 设置/扩展服务的接口

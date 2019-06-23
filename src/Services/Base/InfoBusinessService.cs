@@ -1,11 +1,9 @@
-﻿using System;
-using System.Linq;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using TianCheng.Model;
-using Microsoft.AspNetCore.Http;
+using System.Linq;
 using TianCheng.DAL;
-using Microsoft.Extensions.Logging;
+using TianCheng.Model;
 
 namespace TianCheng.BaseService
 {
@@ -56,16 +54,11 @@ namespace TianCheng.BaseService
         /// <returns></returns>
         public virtual T _SearchById(string id)
         {
-            T info = new T();
-
             // 将传入ID转成对象处理
             T t = new T();
             t.SetId(id);
             // 从数据库中获取对象
-            info = _SearchById(t.Id);
-
-            // 返回查询结果对象
-            return info;
+            return _SearchById(t.Id);
         }
 
         /// <summary>
@@ -220,7 +213,7 @@ namespace TianCheng.BaseService
                 // 判断是否可以执行新增操作
                 if (!IsExecuteCreate(info, logonInfo)) return ResultView.Success();
                 // 保存数据验证的事件处理
-                OnCreatingCheck?.Invoke(info, logonInfo);
+                OnCreateCheck?.Invoke(info, logonInfo);
                 OnSaveCheck?.Invoke(info, logonInfo);
                 #endregion
 
@@ -291,10 +284,10 @@ namespace TianCheng.BaseService
                 #region 保存验证
                 // 保存的数据校验，可以被重写
                 SavingCheck(info, logonInfo);
-                OnUpdateCheck?.Invoke(info, old, logonInfo);
-                OnSaveCheck?.Invoke(info, logonInfo);
                 // 判断是否可以执行新增操作，可以被重写
                 if (!IsExecuteUpdate(info, old, logonInfo)) return ResultView.Success();
+                OnUpdateCheck?.Invoke(info, old, logonInfo);
+                OnSaveCheck?.Invoke(info, logonInfo);
                 #endregion
 
                 #region 保存的前置处理        

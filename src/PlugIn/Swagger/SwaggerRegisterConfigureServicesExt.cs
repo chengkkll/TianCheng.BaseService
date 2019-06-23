@@ -1,14 +1,12 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyModel;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Microsoft.Extensions.DependencyModel;
+using Swashbuckle.AspNetCore.Filters;
+using Swashbuckle.AspNetCore.Swagger;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using TianCheng.BaseService.PlugIn.Swagger;
+using TianCheng.Model;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -23,39 +21,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services"></param>
         static public void SwaggerRegister(this IServiceCollection services)
         {
-            //拷贝引用程序集目录下的xml文件
-            CopyXmlFile();
             //读取配置信息
-            //添加options
-            //services.AddOptions();
-            //services.Configure<SwaggerDocInfo>(configuration.GetSection("SwaggerDoc"));
-            //SwaggerDocInfo doc = configuration.GetValue<SwaggerDocInfo>("SwaggerDoc");
-            //if(doc == null)
-            //{
-            //    doc = SwaggerDocInfo.Default;
-            //}
-            SwaggerDocInfo doc = null;
-            try
-            {
-                var jsonServices = JObject.Parse(File.ReadAllText("appSettings.json"))["SwaggerDoc"];
-                doc = JsonConvert.DeserializeObject<SwaggerDocInfo>(jsonServices.ToString());
-                if (doc == null)
-                {
-                    throw new Exception();
-                }
-            }
-            catch
-            {
-                doc = SwaggerDocInfo.Default;
-            }
+            SwaggerDocInfo doc = SwaggerDocInfo.Load();
 
             #region Swagger
             // Inject an implementation of ISwaggerProvider with defaulted settings applied.  
             services.AddSwaggerGen(options =>
             {
-                options.OperationFilter<AuthorizationParameterFilter>();    //设置Token参数的显示
-                options.OperationFilter<SwaggerFileUploadFilter>();         //设置文件上传的参数显示
-
+                // 设置接口文档的基本信息
                 options.SwaggerDoc(doc.Version, new Swashbuckle.AspNetCore.Swagger.Info
                 {
                     Version = doc.Version,
@@ -70,40 +43,51 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 });
 
-                //查找运行目录的所有xml文件，并加载到当前页面
-                //var basePath = System.IO.Path.Combine(
-                //    PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath,
-                //    doc.XmlPath);
-                //var basePath = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+                // 启用便签功能，实现接口按指定分类进行分组
+                options.EnableAnnotations();
 
-                var host = services.BuildServiceProvider().GetService<AspNetCore.Hosting.IHostingEnvironment>();
-                var basePath = host.ContentRootPath;
-
-                List<string> fileList = new List<string>();
-
-                foreach (var file in GetXmlFile(basePath))
+                // 遍历所有的注释文件，并添加到接口文档中
+                CopyXmlFile();      // 拷贝引用程序集目录下的xml文件
+                foreach (var file in GetXmlFile())
                 {
                     options.IncludeXmlComments(file);
                 }
 
-                //隐藏满足条件的接口
-                options.DocumentFilter<HiddenApiFilter>();
-                //增加默认的注释信息
+                // 增加默认的注释信息
                 options.DocumentFilter<AppendComment>();
-                //设置接口的排序
-                //options.OrderActionGroupsBy(new SwaggerOrderBy());
-                options.OrderActionsBy(SwaggerOrderBy.Order);
-            });
 
+                // 设置接口的排序
+                options.OrderActionsBy(SwaggerOrderBy.Order);
+
+                // 设置登录验证参数的效果
+                options.AddSecurityDefinition("oauth2", new ApiKeyScheme
+                {
+                    Description = $"Token验证。格式：Bearer token \r\n\t 注意：Bearer与token之间需要一个空格连接",
+                    In = "header",
+                    Name = "Authorization",
+                    Type = "apiKey"
+                });
+                options.OperationFilter<SecurityRequirementsOperationFilter>(); // 官方登录验证的处理
+                options.OperationFilter<AuthorizationParameterFilter>();        // 设置接口备注，显示权限名称
+                //options.OperationFilter<SwaggerDecryptFilter>();                // 设置参数加密上传的效果
+
+            });
             #endregion
         }
+
+        #region 注释文件的查找和添加
         /// <summary>
         /// 获取说明的xml文件
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        static private List<string> GetXmlFile(string path)
+        static private List<string> GetXmlFile(string path = "")
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                var host = ServiceLoader.GetService<AspNetCore.Hosting.IHostingEnvironment>();
+                path = host.ContentRootPath;
+            }
             List<string> fileList = new List<string>();
             foreach (var file in new System.IO.DirectoryInfo(path).GetFiles())
             {
@@ -126,11 +110,10 @@ namespace Microsoft.Extensions.DependencyInjection
         static private void CopyXmlFile()
         {
             string xmlPath = $"{AppContext.BaseDirectory}\\LibraryComments";
-            if (!System.IO.Directory.Exists(xmlPath))
+            if (!Directory.Exists(xmlPath))
             {
-                System.IO.Directory.CreateDirectory(xmlPath);
+                Directory.CreateDirectory(xmlPath);
             }
-            StringBuilder sb = new StringBuilder();
 
             foreach (CompilationLibrary library in DependencyContext.Default.CompileLibraries)
             {
@@ -145,12 +128,12 @@ namespace Microsoft.Extensions.DependencyInjection
                         Assembly assembly = Assembly.Load(new AssemblyName(library.Name));
                         if (assembly != null && !String.IsNullOrWhiteSpace(assembly.Location))
                         {
-                            string path = System.IO.Path.GetDirectoryName(assembly.Location);
-                            foreach (string file in System.IO.Directory.GetFiles(path, "*.xml"))
+                            string path = Path.GetDirectoryName(assembly.Location);
+                            foreach (string file in Directory.GetFiles(path, "*.xml"))
                             {
                                 // 将xml文件拷贝到运行目录
                                 string desc = $"{xmlPath}\\{System.IO.Path.GetFileName(file)}";
-                                System.IO.File.Copy(file, desc, true);
+                                File.Copy(file, desc, true);
                             }
                         }
                     }
@@ -160,5 +143,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
         }
+        #endregion
     }
 }

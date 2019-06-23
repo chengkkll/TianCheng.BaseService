@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TianCheng.BaseService
+﻿namespace TianCheng.BaseService
 {
     /// <summary>
     /// 上传的文件信息

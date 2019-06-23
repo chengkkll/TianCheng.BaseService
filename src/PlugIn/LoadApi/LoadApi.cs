@@ -1,12 +1,11 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TianCheng.BaseService.PlugIn.LoadApi
+namespace TianCheng.BaseService
 {
     /// <summary>
     /// LoadApi
@@ -21,9 +20,9 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
         /// <param name="apiUrl"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static T GetObject<T>(string apiUrl, string token = "")
+        public static T Get<T>(string apiUrl, string token = "")
         {
-            string json = GetJson(apiUrl, token);
+            string json = Get(apiUrl, token);
             return JsonConvert.DeserializeObject<T>(json);
         }
         /// <summary>
@@ -32,7 +31,7 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
         /// <param name="apiUrl"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        static public string GetJson(string apiUrl, string token = "")
+        static public string Get(string apiUrl, string token = "")
         {
             var result = Load(ApiMethodType.GET, apiUrl, "", token);
             result.Wait();
@@ -49,9 +48,9 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
         /// <param name="postObject"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static T PostObject<T>(string apiUrl, object postObject, string token = "")
+        public static T Post<T>(string apiUrl, object postObject = null, string token = "")
         {
-            string json = PostJson(apiUrl, postObject, token);
+            string json = Post(apiUrl, postObject, token);
             return JsonConvert.DeserializeObject<T>(json);
         }
         /// <summary>
@@ -61,13 +60,130 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
         /// <param name="postObject"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        static public string PostJson(string apiUrl, object postObject, string token = "")
+        static public string Post(string apiUrl, object postObject = null, string token = "")
         {
             var result = Load(ApiMethodType.POST, apiUrl, postObject, token);
             result.Wait();
             return result.Result;
         }
         #endregion
+
+        #region Put
+        /// <summary>
+        /// 以Put形式调用并返回对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="apiUrl"></param>
+        /// <param name="putObject"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static T Put<T>(string apiUrl, object putObject = null, string token = "")
+        {
+            string json = Put(apiUrl, putObject, token);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+        /// <summary>
+        /// 以Put形式调用并返回Json
+        /// </summary>
+        /// <param name="apiUrl"></param>
+        /// <param name="putObject"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        static public string Put(string apiUrl, object putObject = null, string token = "")
+        {
+            var result = Load(ApiMethodType.PUT, apiUrl, putObject, token);
+            result.Wait();
+            return result.Result;
+        }
+        #endregion
+
+        #region Patch
+        /// <summary>
+        /// 以Put形式调用并返回对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="apiUrl"></param>
+        /// <param name="patchObject"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static T Patch<T>(string apiUrl, object patchObject = null, string token = "")
+        {
+            string json = Patch(apiUrl, patchObject, token);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+        /// <summary>
+        /// 以Put形式调用并返回Json
+        /// </summary>
+        /// <param name="apiUrl"></param>
+        /// <param name="patchObject"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        static public string Patch(string apiUrl, object patchObject = null, string token = "")
+        {
+            var result = Load(ApiMethodType.PATCH, apiUrl, patchObject, token);
+            result.Wait();
+            return result.Result;
+        }
+        #endregion
+
+        #region Delete
+        /// <summary>
+        /// 以Put形式调用并返回对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="apiUrl"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static T Delete<T>(string apiUrl, string token = "")
+        {
+            string json = Patch(apiUrl, token);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+        /// <summary>
+        /// 以Put形式调用并返回Json
+        /// </summary>
+        /// <param name="apiUrl"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        static public string Delete(string apiUrl, string token = "")
+        {
+            var result = Load(ApiMethodType.DELETE, apiUrl, null, token);
+            result.Wait();
+            return result.Result;
+        }
+        #endregion
+
+        #region Options
+        /// <summary>
+        /// 以Put形式调用并返回对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="apiUrl"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static T Options<T>(string apiUrl, string token = "")
+        {
+            string json = Patch(apiUrl, token);
+            return JsonConvert.DeserializeObject<T>(json);
+        }
+        /// <summary>
+        /// 以Put形式调用并返回Json
+        /// </summary>
+        /// <param name="apiUrl"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        static public string Options(string apiUrl, string token = "")
+        {
+            var result = Load(ApiMethodType.OPTIONS, apiUrl, null, token);
+            result.Wait();
+            return result.Result;
+        }
+        #endregion
+
+        /// <summary>
+        /// 登录后的Token信息
+        /// </summary>
+        public static string Token { get; set; }
 
         #region Core
         /// <summary>
@@ -78,10 +194,13 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
         /// <param name="postObject"></param>
         /// <param name="token"></param>
         /// <param name="tokenScheme"></param>
-        /// <param name="timeout"></param>
         /// <returns></returns>
-        private async static Task<string> Load(ApiMethodType methodType, string apiUrl, object postObject, string token = "", string tokenScheme = "Bearer", int timeout = 1000)
+        private static async Task<string> Load(ApiMethodType methodType, string apiUrl, object postObject, string token = "", string tokenScheme = "Bearer")
         {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                token = Token;
+            }
 
             HttpClientHandler handler = new HttpClientHandler();
             //handler.Proxy = null;
@@ -89,21 +208,10 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
 
             using (var httpClient = new HttpClient(handler))
             {
-                //设置Token信息
-                if (!String.IsNullOrWhiteSpace(token))
+                // 设置Token信息
+                if (!string.IsNullOrWhiteSpace(token))
                 {
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                }
-                //设置Post数据
-                StringContent content = null;
-                if (postObject != null)
-                {
-                    string postJson = Newtonsoft.Json.JsonConvert.SerializeObject(postObject);
-                    content = new StringContent(postJson, Encoding.UTF8, "application/json");
-                }
-                else
-                {
-                    content = new StringContent("");
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(tokenScheme, token);
                 }
 
                 //发送请求
@@ -117,12 +225,12 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
                         }
                     case ApiMethodType.POST:
                         {
-                            response = await httpClient.PostAsync(apiUrl, content);
+                            response = await httpClient.PostAsync(apiUrl, GetJsonContent(postObject));
                             break;
                         }
                     case ApiMethodType.PUT:
                         {
-                            response = await httpClient.PutAsync(apiUrl, content);
+                            response = await httpClient.PutAsync(apiUrl, GetJsonContent(postObject));
                             break;
                         }
                     case ApiMethodType.DELETE:
@@ -136,8 +244,8 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
                             {
                                 Method = new HttpMethod("PATCH")
                             };
-                            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                            requestMessage.RequestUri = new Uri(apiUrl);
+                            //requestMessage.Headers.Authorization = new AuthenticationHeaderValue(tokenScheme, token);
+                            //requestMessage.RequestUri = new Uri(apiUrl);
                             response = await httpClient.SendAsync(requestMessage);
                             break;
                         }
@@ -146,16 +254,16 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
                             HttpRequestMessage requestMessage = new HttpRequestMessage
                             {
                                 Method = HttpMethod.Options,
-                                Content = content
+                                Content = GetJsonContent(postObject)
                             };
-                            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                            requestMessage.Headers.Authorization = new AuthenticationHeaderValue(tokenScheme, token);
                             requestMessage.RequestUri = new Uri(apiUrl);
                             response = await httpClient.SendAsync(requestMessage);
                             break;
                         }
                     default:
                         {
-                            response = await httpClient.PostAsync(apiUrl, content);
+                            response = await httpClient.PostAsync(apiUrl, GetJsonContent(postObject));
                             break;
                         }
                 }
@@ -171,7 +279,20 @@ namespace TianCheng.BaseService.PlugIn.LoadApi
                 }
             }
         }
-
+        /// <summary>
+        /// 获取请求时的体信息
+        /// </summary>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        static private StringContent GetJsonContent(object content)
+        {
+            if (content == null)
+            {
+                return new StringContent("");
+            }
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(content);
+            return new StringContent(json, Encoding.UTF8, "application/json");
+        }
         #endregion
     }
 }

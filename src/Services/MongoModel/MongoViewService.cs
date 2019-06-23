@@ -1,9 +1,5 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using TianCheng.BaseService.Services;
-using TianCheng.DAL;
-using TianCheng.DAL.MongoDB;
-using TianCheng.DAL.Redis;
+﻿using TianCheng.DAL.MongoDB;
+//using TianCheng.DAL.Redis;
 using TianCheng.Model;
 
 

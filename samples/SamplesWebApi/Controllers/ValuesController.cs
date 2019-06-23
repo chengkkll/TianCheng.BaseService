@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using Swashbuckle.AspNetCore.Annotations;
+using TianCheng.BaseService;
 
 namespace SamplesWebApi.Controllers
 {
@@ -27,53 +30,86 @@ namespace SamplesWebApi.Controllers
 
 
         /// <summary>
-        ///  GET api/values
+        ///  获取IP地址
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
-        public IEnumerable<string> Get([FromServices]IHttpContextAccessor httpContext)
+        [HttpGet("User/Ip")]
+        public string Get([FromServices]IHttpContextAccessor accessor)
         {
-            httpContext.HttpContext.Response.StatusCode = 204;
-            return new string[] { "value1", "value2" };
+            return accessor.HttpContext.Connection.RemoteIpAddress.ToString();
         }
 
         /// <summary>
-        ///  GET api/values/5
+        ///  获取信息
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
         public string Get(int id)
         {
-            return "value";
+            return id.ToString();
         }
 
         /// <summary>
-        ///  POST api/values
+        ///  新增对象
         /// </summary>
         /// <param name="value"></param>
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = "SystemManage.Values.Create")]
+        [SwaggerOperation(Tags = new[] { "系统管理-测试接口" })]
+        [Route("{id}")]
         [HttpPost]
-        public void Post([FromBody]string value)
+        public void Create([FromBody]string value)
         {
         }
 
         /// <summary>
-        ///  PUT api/values/5
+        ///  修改对象
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="value"></param>
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        [Microsoft.AspNetCore.Authorization.Authorize(Policy = "SystemManage.Values.Update")]
+        [SwaggerOperation(Tags = new[] { "系统管理-测试接口" })]
+        [Route("{id}")]
+        [HttpPut]
+        public void Update([FromBody]string value)
         {
         }
 
+
         /// <summary>
-        ///  DELETE api/values/5
+        ///  上传文件测试
+        /// </summary>
+        /// <param name="file"></param>
+        [SwaggerOperation(Tags = new[] { "系统管理-测试接口" })]
+        [HttpPost("testUpfile")]
+        public UploadFileInfo Upfile(IFormFile file)
+        {
+            if (file is null)
+            {
+                throw new ArgumentNullException(nameof(file));
+            }
+            string webFile = $"~/wwwroot/UploadFiles/{Guid.NewGuid().ToString()}";
+            return UploadFileHandle.UploadImage(webFile, file);
+        }
+
+        /// <summary>
+        ///  逻辑删除
         /// </summary>
         /// <param name="id"></param>
-        [HttpDelete("{id}")]
+        [SwaggerOperation(Tags = new[] { "系统管理-测试接口" })]
+        [ApiExplorerSettings(IgnoreApi = true)]
+        [HttpDelete("Delete/{id}")]
         public void Delete(int id)
         {
+        }
+        /// <summary>
+        ///  物理删除
+        /// </summary>
+        /// <param name="id"></param>
+        [SwaggerOperation(Tags = new[] { "系统管理-测试接口" })]
+        [HttpDelete("Remove/{id}")]
+        public void Remove(int id)
+        {
+            TianCheng.Model.ApiException.ThrowBadRequest("不允许删除操作");
         }
     }
 }

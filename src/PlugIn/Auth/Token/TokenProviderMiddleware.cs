@@ -2,12 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace TianCheng.BaseService.PlugIn
@@ -24,7 +18,7 @@ namespace TianCheng.BaseService.PlugIn
         /// <summary>
         /// 
         /// </summary>
-        private readonly TokenProviderOptions _options;
+        private TokenProviderOptions _options;
         /// <summary>
         /// 
         /// </summary>
@@ -36,11 +30,7 @@ namespace TianCheng.BaseService.PlugIn
         /// <param name="next"></param>
         /// <param name="options"></param>
         /// <param name="schemes"></param>
-        public TokenProviderMiddleware(
-            RequestDelegate next,
-            IOptions<TokenProviderOptions> options,
-            //IUserService _service, 
-            IAuthenticationSchemeProvider schemes)
+        public TokenProviderMiddleware(RequestDelegate next, IOptions<TokenProviderOptions> options, IAuthenticationSchemeProvider schemes)
         {
             _next = next;
             _options = options.Value;
@@ -65,8 +55,7 @@ namespace TianCheng.BaseService.PlugIn
             var handlers = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
             foreach (var scheme in await Schemes.GetRequestHandlerSchemesAsync())
             {
-                var handler = await handlers.GetHandlerAsync(context, scheme.Name) as IAuthenticationRequestHandler;
-                if (handler != null && await handler.HandleRequestAsync())
+                if (await handlers.GetHandlerAsync(context, scheme.Name) is IAuthenticationRequestHandler handler && await handler.HandleRequestAsync())
                 {
                     return;
                 }

@@ -1,12 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TianCheng.BaseService.PlugIn;
-using System.Linq;
-using TianCheng.BaseService.Services;
 
 namespace Microsoft.AspNetCore.Builder
 {
@@ -20,13 +13,11 @@ namespace Microsoft.AspNetCore.Builder
         /// </summary>
         /// <param name="app"></param>
         /// <param name="configuration"></param>
-        static public void TianChengInit(this IApplicationBuilder app, IConfiguration configuration)
+        static public void TianChengBaseServicesInit(this IApplicationBuilder app, IConfiguration configuration)
         {
-            // ServiceLoader.Instance = app.ApplicationServices;
-            TianCheng.DAL.Interface.Appsettings.Instance = app.ApplicationServices;
-            TianCheng.DAL.Interface.Appsettings.Configuration = configuration;
             TianCheng.Model.ServiceLoader.Instance = app.ApplicationServices;
-
+            // 初始化数据库模块
+            TianCheng.DAL.LoadDB.Init();
             //跨域处理
             app.UseCors("AllowAnyDomain");
 
@@ -41,8 +32,6 @@ namespace Microsoft.AspNetCore.Builder
 
             // Swagger
             app.UseSwaggerUI();
-
-
         }
     }
 }

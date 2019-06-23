@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TianCheng.Model;
 
 namespace TianCheng.BaseService
 {
@@ -11,6 +9,7 @@ namespace TianCheng.BaseService
     /// </summary>
     public class DataController : Controller
     {
+        #region 登录信息
         private TokenLogonInfo _LogonInfo = null;
         /// <summary>
         /// 获取登录信息
@@ -19,7 +18,7 @@ namespace TianCheng.BaseService
         {
             get
             {
-                if(_LogonInfo != null)
+                if (_LogonInfo != null)
                 {
                     return _LogonInfo;
                 }
@@ -30,7 +29,7 @@ namespace TianCheng.BaseService
                 _LogonInfo = new TokenLogonInfo();
                 foreach (var item in User.Claims)
                 {
-                    switch(item.Type)
+                    switch (item.Type)
                     {
                         case "name":
                             {
@@ -67,6 +66,38 @@ namespace TianCheng.BaseService
                 return _LogonInfo;
             }
         }
-    }
+        #endregion
 
+        #region 请求地址
+        private IHttpContextAccessor _ContextAccessor = null;
+        /// <summary>
+        /// 获取请求链接的服务
+        /// </summary>
+        protected IHttpContextAccessor ContextAccessor
+        {
+            get
+            {
+                if (_ContextAccessor == null)
+                {
+                    _ContextAccessor = ServiceLoader.GetService<IHttpContextAccessor>();
+                }
+                return _ContextAccessor;
+            }
+        }
+        /// <summary>
+        /// 获取请求的IP地址
+        /// </summary>
+        protected string IpAddress
+        {
+            get
+            {
+                if (ContextAccessor != null)
+                {
+                    return ContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
+                }
+                return string.Empty;
+            }
+        }
+        #endregion
+    }
 }

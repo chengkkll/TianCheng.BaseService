@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
-using System.Text;
+using System.IO;
 
 namespace TianCheng.BaseService.PlugIn.Swagger
 {
@@ -57,20 +58,74 @@ namespace TianCheng.BaseService.PlugIn.Swagger
         {
             get
             {
-                SwaggerDocInfo doc = new SwaggerDocInfo();
+                return new SwaggerDocInfo
+                {
+                    Version = "v1",
+                    Title = "演示系统接口文档",
+                    Description = "RESTful API for 演示系统接",
+                    TermsOfService = "None",
+                    ContactName = "cheng",
+                    ContactEmail = "cheng_kkll@163.com",
+                    ContactUrl = "",
+                    EndpointUrl = "/swagger/v1/swagger.json",
+                    EndpointDesc = "演示系统 API V1",
+                    XmlPath = "App_Data"
+                };
+            }
+        }
+        /// <summary>
+        /// 加载配置文件中的配置信息
+        /// </summary>
+        /// <returns></returns>
+        static public SwaggerDocInfo Load()
+        {
+            SwaggerDocInfo doc;
+            try
+            {
+                var jsonServices = JObject.Parse(File.ReadAllText("appSettings.json"))["SwaggerDoc"];
+                doc = JsonConvert.DeserializeObject<SwaggerDocInfo>(jsonServices.ToString());
+                if (doc == null)
+                {
+                    doc = SwaggerDocInfo.Default;
+                }
+            }
+            catch
+            {
+                doc = SwaggerDocInfo.Default;
+            }
+            return doc;
+        }
 
-                doc.Version = "v1";
-                doc.Title = "演示系统接口文档";
-                doc.Description = "RESTful API for 演示系统接";
-                doc.TermsOfService = "None";
-                doc.ContactName = "cheng";
-                doc.ContactEmail = "cheng_kkll@163.com";
-                doc.ContactUrl = "";
-                doc.EndpointUrl = "/swagger/v1/swagger.json";
-                doc.EndpointDesc = "演示系统 API V1";
-                doc.XmlPath = "App_Data";
+        /// <summary>
+        /// 获取模块序号信息
+        /// </summary>
+        /// <returns></returns>
+        static public Dictionary<string, string> ModelIndex()
+        {
+            try
+            {
 
-                return doc;
+
+                var result = new Dictionary<string, string>();
+                int index = 10;
+                JToken dictJson = JObject.Parse(File.ReadAllText("appSettings.json"))["FunctionModule"]["ModuleDict"];
+                foreach (var item in dictJson.Children())
+                {
+                    string code = item["Code"].ToString();
+                    if (!result.ContainsKey(code))
+                    {
+                        result.Add(code, (index++).ToString());
+                    }
+                }
+                return result;
+            }
+            catch
+            {
+                return new Dictionary<string, string>
+                {
+                    { "AuthController","00" },
+                    { "TianCheng.SystemCommon" , "zz"}
+                };
             }
         }
     }

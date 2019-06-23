@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace TianCheng.BaseService
 {
@@ -31,11 +29,10 @@ namespace TianCheng.BaseService
         /// </summary>
         public string DepartmentName { get; set; }
 
-        private List<string> _function = new List<string>();
         /// <summary>
         /// 当前用户拥有的功能点列表
         /// </summary>
-        public List<string> FunctionPolicyList { get { return _function; } set { _function = value; } }
+        public List<string> FunctionPolicyList { get; set; } = new List<string>();
 
         /// <summary>
         /// 判断当前登录用户是否拥有指定的权限

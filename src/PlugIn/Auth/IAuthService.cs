@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Security.Claims;
+using TianCheng.Model;
 
 namespace TianCheng.BaseService.PlugIn
 {
     /// <summary>
     /// 请求api接口时的权限控制
     /// </summary>
-    public interface IAuthService 
+    public interface IAuthService : IServiceRegister
     {
         /// <summary>
         /// 每次请求接口时，加载用户的权限信息
@@ -28,6 +26,5 @@ namespace TianCheng.BaseService.PlugIn
         /// </summary>
         /// <param name="logonInfo"></param>
         void Logout(TokenLogonInfo logonInfo);
-
     }
 }

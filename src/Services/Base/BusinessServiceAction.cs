@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TianCheng.BaseService
 {
@@ -63,7 +61,7 @@ namespace TianCheng.BaseService
         /// <summary>
         /// 新增前的数据验证事件 如果验证失败通过抛出异常形式终止数据保存
         /// </summary>
-        static public Action<T, TokenLogonInfo> OnCreatingCheck;
+        static public Action<T, TokenLogonInfo> OnCreateCheck;
         /// <summary>
         /// 新增前置事件
         /// </summary>
